@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>YOLO and Gesture Recognition System</title>
+    <!-- Include Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <!-- Custom Fonts and Styles -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* 保持原有的 CSS */
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            text-align: center;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            margin-top: 20px;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        .video-container {
+            margin-top: 20px;
+        }
+        .video-container img {
+            width: auto;
+            height: auto;
+            max-width: 100%;
+            border: 2px solid #444;
+            border-radius: 10px;
+        }
+        .btn-custom {
+            padding: 15px 30px;
+            margin: 10px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            color: #fff;
+            border: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        /* Multiple colored buttons */
+        .btn-initialize {
+            background: linear-gradient(45deg, #ff416c, #ff4b2b);
+        }
+        .btn-start {
+            background: linear-gradient(45deg, #1e3c72, #2a5298);
+        }
+        .btn-stop {
+            background: linear-gradient(45deg, #00b09b, #96c93d);
+        }
+        .btn-pause {
+            background: linear-gradient(45deg, #e44d26, #f16529);
+        }
+        .btn-close {
+            background: linear-gradient(45deg, #654ea3, #eaafc8);
+        }
+        .btn-update {
+            background: linear-gradient(45deg, #00c6ff, #0072ff);
+        }
+        .btn-gesture-edit {
+            background: linear-gradient(45deg, #f7971e, #ffd200); /* 橙色漸變 */
+        }
+        .btn-ai-retrain {
+            background: linear-gradient(45deg, #0db4e2, #aa1a8b); /* 藍色漸變 */
+        }
+        .btn-robot-control {
+            background: linear-gradient(45deg,rgb(205, 32, 231),rgb(221, 239, 20)); /* 紅色漸變 */
+        }
+        .btn-custom:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+        #message {
+            color: #ff416c;
+            font-size: 1.2rem;
+            margin-top: 10px;
+        }
+        #info {
+            margin-top: 30px;
+            font-size: 1.5rem;
+        }
+        #info div {
+            margin-bottom: 15px;
+        }
+        @media (max-width: 767px) {
+            h1 {
+                font-size: 2rem;
+            }
+            .btn-custom {
+                width: 80%;
+                font-size: 1rem;
+                padding: 12px 20px;
+            }
+            #info {
+                font-size: 1.2rem;
+            }
+            .video-container {
+                margin-top: 20px;
+            }
+            .video-container img {
+                width: 100%;
+            }
+        }
+        /* Ensure videos are aligned */
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .col-md-6 {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        /* Dropdown container styling */
+        .dropdown-container {
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>YOLO and Gesture Recognition System</h1>
+    <div id="message"></div>
+    <div class="container">
+
+        <!-- 下拉式選單區塊 -->
+        <div class="dropdown-container">
+            <!-- 模式选择 -->
+            <div class="md:flex md:items-center mb-6">
+                <label class="block text-white font-bold md:text-right mb-1 md:mb-0 pr-4" for="mode">
+                    Mode
+                </label>
+                <select class="bg-gray-200 border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-teal-500" id="mode" onchange="modeChanged()">
+                    <option value="default">Default Mode</option>
+                    <option value="custom">Custom Mode</option>
+                </select>
+            </div>
+            
+            <!-- 用户名选择（仅在自定义模式下显示） -->
+            <div id="usernameDiv" class="md:flex md:items-center mb-6" style="display: none;">
+                <label class="block text-white font-bold md:text-right mb-1 md:mb-0 pr-4" for="username">
+                    Username
+                </label>
+                <select class="bg-gray-200 border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-teal-500" id="username" onchange="fetchModels()">
+                    <!-- 用户列表将通过 JavaScript 填充 -->
+                </select>
+            </div>
+            
+            <!-- 神经网络选择（在 default 和 custom 模式下显示） -->
+            <div id="neuralNetworkDiv" class="md:flex md:items-center mb-6" style="display: none;">
+                <label class="block text-white font-bold md:text-right mb-1 md:mb-0 pr-4" for="neuralNetwork">Neural Network</label>
+                <select class="bg-gray-200 border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-teal-500" id="neuralNetwork" onchange="fetchModels()">
+                    <option value="">Select Neural Network</option>
+                    <option value="Transformer">Transformer</option>
+                    <option value="CNN_LSTM">CNN LSTM</option>
+                    <option value="CBiLSTM">CNN BiLSTM</option>
+                    <option value="GRUClassifier">GRUClassifier</option>
+                    <option value="CRNN">CRNN</option>
+                </select>
+            </div>
+        
+            <!-- 模型选择（在 default 和 custom 模式下显示） -->
+            <div id="modelDiv" class="md:flex md:items-center mb-6" style="display: none;">
+                <label class="block text-white font-bold md:text-right mb-1 md:mb-0 pr-4" for="model">
+                    Model
+                </label>
+                <select class="bg-gray-200 border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-teal-500" id="model">
+                    <option value="">Select Model</option>
+                    <!-- 模型列表将通过 JavaScript 填充 -->
+                </select>
+            </div>
+
+            <!-- Update 按鈕（在 default 和 custom 模式下显示） -->
+            <div id="updateButtonDiv" class="md:flex md:items-center mb-6" style="display: none;">
+                <button class="btn btn-custom btn-update" onclick="updateModel()">Update Model</button>
+            </div>
+        </div>
+        <!-- 下拉式選單區塊結束 -->
+
+        <div class="row">
+            <div class="col-md-6 video-container">
+                <h2>YOLO Video Stream</h2>
+                <img id="yolo_video" src="{{ url_for('video_feed_yolo') }}" alt="YOLO Video Feed">
+            </div>
+            <div class="col-md-6 video-container">
+                <h2>Gesture Recognition Video Stream</h2>
+                <img id="gesture_video" src="{{ url_for('video_feed_gesture') }}" alt="Gesture Recognition Video Feed">
+            </div>
+        </div>
+        <div class="mt-4">
+            <button class="btn btn-custom btn-initialize" id="initializeButton" onclick="initializeCamera()" disabled>Initialize Cameras</button>
+            <button class="btn btn-custom btn-pause" onclick="pauseResume()">Pause/Resume</button>
+            <button class="btn btn-custom btn-close" onclick="stopCamera()">Stop Cameras</button>
+            <button class="btn btn-custom btn-gesture-edit" onclick="navigateToPage('gesture_edit')">Gesture Data Edit</button>
+            <button class="btn btn-custom btn-robot-control" onclick="navigateToPage('robot_control')">TEMI robot manual control</button>
+        <button class="btn btn-custom btn-ai-retrain" onclick="navigateToPage('ai_retrain')">Adaptive AI retrain</button>
+        </div>
+        <div id="info">
+            <div id="gesture_info">Gesture: N/A</div>
+            <div id="yolo_info">Object: N/A</div>
+            <div id="aiming_status">Status: N/A</div>
+        </div>
+    </div>
+
+    <!-- Include Bootstrap JS and Dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+    <!-- Include Socket.IO -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
+    <script>
+        var socket = io();
+        socket.on('message', function(msg) {
+            document.getElementById('message').innerText = msg;
+        });
+
+        socket.on('gesture_info', function(data) {
+            document.getElementById('gesture_info').innerText = 'Gesture: ' + data.gesture + ' (Confidence: ' + data.confidence.toFixed(2) + ')';
+        });
+
+        socket.on('target_info', function(data) {
+            document.getElementById('yolo_info').innerText = 'Object: ' + data.label + ' (Confidence: ' + data.confidence.toFixed(2) + ')';
+        });
+
+        socket.on('aiming_status', function(status) {
+            document.getElementById('aiming_status').innerText = 'Status: ' + status;
+        });
+
+        socket.on('angle_update', function(data) {
+            document.getElementById('aiming_status').innerText = 'Angle: ' + data.angle + ' degrees';
+        });
+
+        function initializeCamera() {
+            socket.emit('initialize_camera');
+        }
+
+        function startRecording() {
+            socket.emit('start_recording');
+        }
+
+        function stopRecording() {
+            socket.emit('stop_recording');
+        }
+
+        function pauseResume() {
+            socket.emit('pause');
+        }
+
+        function stopCamera() {
+            socket.emit('stop_camera');
+        }
+        function navigateToPage(page) {
+            if (page === 'gesture_edit') {
+                window.location.href = '/test1'; // 對應後端的 /test1 路由
+            } else if (page === 'ai_retrain') {
+                window.location.href = '/test2'; // 對應後端的 /test2 路由
+            } else if (page === 'robot_control') {
+                window.location.href = '/test3'; // 對應後端的 /test3 路由
+            }
+            else {
+                console.error('Unknown page:', page);
+            }
+        }
+
+        // 新增的前端功能開始
+
+        // 頁面加載時初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize the mode selection based on the default selected option
+            modeChanged();
+            document.getElementById('initializeButton').disabled = true;
+        });
+
+        function modeChanged() {
+            var mode = document.getElementById('mode').value;
+            if (mode === 'default') {
+                // Show neural network selection and model selection
+                document.getElementById('neuralNetworkDiv').style.display = 'flex';
+                document.getElementById('modelDiv').style.display = 'flex';
+                document.getElementById('updateButtonDiv').style.display = 'flex';
+                
+                // Hide username and userModel selections
+                document.getElementById('usernameDiv').style.display = 'none';
+
+                // Set username to 'default' internally for update
+                // Fetch models based on selected neural network
+                var neuralNetwork = document.getElementById('neuralNetwork').value;
+                if (neuralNetwork) {
+                    fetchModels();
+                } else {
+                    // Clear model dropdown
+                    var modelSelect = document.getElementById('model');
+                    modelSelect.innerHTML = '<option value="">Select Model</option>';
+                }
+            } else if (mode === 'custom') {
+                // Show username selection, neural network selection, model selection, and update button
+                document.getElementById('usernameDiv').style.display = 'flex';
+                document.getElementById('neuralNetworkDiv').style.display = 'flex';
+                document.getElementById('modelDiv').style.display = 'flex';
+                document.getElementById('updateButtonDiv').style.display = 'flex';
+
+                // Clear and load users
+                loadUsers();
+
+                // Clear neural network selection
+                document.getElementById('neuralNetwork').value = '';
+                // Clear model dropdown
+                var modelSelect = document.getElementById('model');
+                modelSelect.innerHTML = '<option value="">Select Model</option>';
+            } else {
+                // Hide all if no valid mode selected
+                document.getElementById('usernameDiv').style.display = 'none';
+                document.getElementById('neuralNetworkDiv').style.display = 'none';
+                document.getElementById('modelDiv').style.display = 'none';
+                document.getElementById('updateButtonDiv').style.display = 'none';
+            }
+        }
+
+        // 函式：載入使用者列表
+        function loadUsers() {
+            fetch('/get_users')
+                .then(response => response.json())
+                .then(data => {
+                    var users = data.users;
+                    var usernameSelect = document.getElementById('username');
+                    usernameSelect.innerHTML = '<option value="">Select Username</option>';
+                    users.forEach(function(user) {
+                        usernameSelect.innerHTML += '<option value="' + user + '">' + user + '</option>';
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching users:', error);
+                    alert('Failed to load users.');
+                });
+        }
+
+        // 函式：載入模型列表
+        function fetchModels() {
+            var mode = document.getElementById('mode').value;
+            var username = 'default'; // For default mode
+            var neuralNetwork = document.getElementById('neuralNetwork').value;
+
+            if (mode === 'custom') {
+                username = document.getElementById('username').value;
+            }
+
+            if (!neuralNetwork) {
+                // Clear model dropdown
+                var modelSelect = document.getElementById('model');
+                modelSelect.innerHTML = '<option value="">Select Model</option>';
+                return;
+            }
+
+            // Construct the appropriate URL based on mode
+            var url = 'http://100.90.232.15:5000/get_user_models/' + encodeURIComponent(username) + '/' + encodeURIComponent(neuralNetwork);
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    var models = data.models;
+                    var modelSelect = document.getElementById('model');
+                    modelSelect.innerHTML = '<option value="">Select Model</option>';
+                    if (models.length > 0) {
+                        models.forEach(function(model) {
+                            modelSelect.innerHTML += '<option value="' + model + '">' + model + '</option>';
+                        });
+                        document.getElementById('modelDiv').style.display = 'flex';
+                    } else {
+                        modelSelect.innerHTML = '<option value="">No Models Available</option>';
+                        alert('No models available for the selected neural network.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching models:', error);
+                    alert('Failed to load models.');
+                });
+        }
+
+        
+
+            // 更新模型到另一個裝置
+            function updateModel() {
+                var mode = document.getElementById('mode').value;
+                var username = 'default'; // For default mode
+                var neuralNetwork = document.getElementById('neuralNetwork').value;
+                var model = document.getElementById('model').value;
+
+                if (mode === 'custom') {
+                    username = document.getElementById('username').value;
+                }
+
+                if (mode === 'default') {
+                    // In default mode, username is 'default'
+                    username = 'default';
+                }
+
+                if (!neuralNetwork || !model) {
+                    alert('Please select neural network and model.');
+                    return;
+                }
+
+                // Prepare the payload
+                var payload = {
+                    username: username,
+                    neural_network: neuralNetwork,
+                    model: model
+                };
+
+                // Send POST request to update_model
+                fetch('/update_model', { // 修改端點為 /update_model
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        alert(data.message);
+                        // Enable the 'Initialize Cameras' button
+                        document.getElementById('initializeButton').disabled = false;
+                    } else if (data.error) {
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating model:', error);
+                    alert('Failed to update model.');
+                });
+            }
+
+
+    </script>
+</body>
+</html>
+
+
+
+

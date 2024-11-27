@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>T1-204A LAB Gesture Recognition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    />
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body class="bg-gray-100">
+<!--<img src="圖片1.png" alt="logo" class="logo" sizes="200px" />-->
+<div class="max-w-6xl mx-auto px-5 py-12">
+    <div class="text-center mb-8">
+       <img src="{{ url_for('static', filename='圖片1.png') }}" alt="logo" class="logo" style="width: 3000px;">
+    </div>
+    <div class="flex justify-center space-x-4 my-8">
+        <button class="tab" onclick="changeTab('inferenceDataCheck')">Inference Data Check</button>
+        <button class="tab" onclick="changeTab('modelRetrain')">Model Retrain</button>
+        <button class="tab" onclick="changeTab('inferenceModel')">Inference Model</button>
+    </div>
+    <div id="inferenceDataCheck" class="content">
+        <!-- Content for Inference Data Check Page -->
+        <video id="videoPlayer" width="750" controls class="center">
+            <source src="{{ url_for('static', filename='output.webm') }}" type="video/webm" />
+            Your browser does not support the video tag.
+        </video>
+        <div class="container">
+            <div class="label-selection my-4"></div>
+            <div
+                    class="time-navigation flex items-center justify-center gap-4 my-4"
+                    id="timeNavigation"
+            >
+                <button id="prevButton" style="width: 100px; height: 100px">
+                    <i class="fas fa-arrow-left">Last Time</i>
+                </button>
+                <div id="currentTime" style="width: 50px; height: 50px">
+                    Loading...
+                </div>
+                <button id="nextButton" style="width: 100px; height: 100px">
+                    <i class="fas fa-arrow-right">Next Time</i>
+                </button>
+                <!--            label choose-->
+            </div>
+            <div class="flex justify-center space-x-4 my-8">
+                <button id="leftButton" style="width: 100px; height: 100px">
+                    0 :Left
+                </button>
+                <button id="rightButton" style="width: 100px; height: 100px">
+                    1 : Right
+                </button>
+            </div>
+            <div class="flex justify-center space-x-8 my-8">
+                <button
+                        id="saveToDatabase"
+                        style="width: 100px; height: 100px; color: #6e11c4"
+                >Save to database button
+                </button>
+        </div>
+    </div>
+    </div>
+    <div id="modelRetrain" class="content">
+        <!-- Content for Model Retrain Page -->
+<!--        set paraneter-->
+        <h2 class="text-center text-2xl font-bold text-teal-500 mb-4">Set Hyperparameter</h2>
+        <form id="hyperparametersForm" class="w-full max-w-sm">
+            <div class="md:flex md:items-center mb-6">
+                <label class="block text-black font-bold md:text-right mb-1 md:mb-0 pr-4" for="learningRate">
+                    Learning Rate
+                </label>
+                <input class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-teal-500" id="learningRate" type="number" step="0.0001" min="0" value="0.001">
+            </div>
+            <div class="md:flex md:items-center mb-6">
+                <label class="block text-black font-bold md:text-right mb-1 md:mb-0 pr-4" for="epoch">
+                    Epoch
+                </label>
+                <input class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-teal-500" id="epoch" type="number" min="1" value="10">
+                <span id="epochError" class="text-red-500 text-xs pl-2"></span>
+            </div>
+<!--            set batch size-->
+            <div class="md:flex md:items-center mb-6">
+                <label class="block text-black font-bold md:text-right mb-1 md:mb-0 pr-4" for="batchSize">
+                    Batch Size
+                </label>
+                <input class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-teal-500" id="batchSize" type="number" min="1" value="32">
+            </div>
+            <div class="md:flex md:items-center mb-6">
+                <label class="block text-black font-bold md:text-right mb-1 md:mb-0 pr-4" for="lossFunction">
+                    Loss Function
+                </label>
+                <select class="bg-gray-200 border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-teal-500" id="lossFunction">
+                    <option value="CrossEntropyLoss">CrossEntropyLoss</option>
+                    <option value="BCEWithLogitsLoss">BCEWithLogitsLoss</option>
+                </select>
+            </div>
+            <div class="md:flex md:items-center mb-6">
+                <label class="block text-black font-bold md:text-right mb-1 md:mb-0 pr-4" for="neuralNetwork">
+                    Neural Network
+                </label>
+                <select class="bg-gray-200 border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-teal-500" id="neuralNetwork">
+                    <option value="Transformer">Transformer</option>
+                    <option value="CNN_LSTM">CNN LSTM</option>
+                    <option value="CBiLSTM">CNN BiLSTM</option>
+                    <option value="bilstm">BiLSTM</option>
+                </select>
+            </div>
+            <div class="md:flex md:items-center mb-6">
+                <label class="block text-black font-bold md:text-right mb-1 md:mb-0 pr-4" for="optimizer">
+                    Optimizer
+                </label>
+                <select class="bg-gray-200 border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-teal-500" id="optimizer">
+                    <option value="adam">adam</option>
+                    <option value="sgd">SGD</option>
+                    <!-- Add more options here if needed -->
+                </select>
+            </div>
+            <!-- Select Model to Train -->
+            <div class="md:flex md:items-center mb-6">
+                <label class="block text-black font-bold md:text-right mb-1 md:mb-0 pr-4" for="model">
+                    Model
+                </label>
+                <select class="bg-gray-200 border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-teal-500" id="model">
+                    <!-- Options will be populated here by JavaScript -->
+                </select>
+            </div>
+            <div class="md:flex md:items-center">
+                <div class="md:w-1/3"></div>
+                <div class="md:w-2/3">
+                    <button class="shadow bg-teal-500 hover:bg-teal-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded" type="button" onclick="submitForm()">
+                        Yes, Set it!
+                    </button>
+
+                </div>
+                <!-- Add an element to display the response message -->
+
+                <div class="bg-blue-500" id="responseMessage"></div>
+
+
+            </div>
+            <div class="md:flex md:items-center">
+                <div class="fire-edge-button">
+                    <button class="shadow bg-red-500  md:text-right hover:bg-red-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded" type="button" onclick="train()" id="trainbutton">
+                        Start Retrainin the model!
+                    </button>
+<!--                    stop retrain the model-->
+                </div>
+                <div class="fire-edge-button">
+                    <button class="shadow bg-red-500  md:text-right hover:bg-red-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded" type="button" onclick="stop()" id="stopbutton">
+                        Stop Retrainin the model!
+                    </button>
+                </div>
+                <div class="bg-green-500" id = "train_process_update"></div>
+            </div>
+        </form>
+        <div> <canvas id="progressChart"> </canvas></div>
+        <h2 class="text-center text-2xl font-bold text-stone-950 mb-4" style="color: #7e0ce3">Train Model Real Time Curve</h2>
+        <div>
+            <canvas id="trainingProgressChart"></canvas>
+        </div>
+        <h2 class="text-center text-2xl font-bold text-stone-950 mb-4" style="color: #7e0ce3">Train Model Metrics</h2>
+        <div>
+            <canvas id="trainLoss_Chart"></canvas>
+            <canvas id="trainAccuracy_Chart"></canvas>
+            <canvas id="rocAucChart"></canvas>
+            <canvas id="precisionChart"></canvas>
+            <canvas id="recallChart"></canvas>
+            <canvas id="f1Chart"></canvas>
+            <canvas id="accuracyChart"></canvas>
+        </div>
+
+
+    </div>
+    <div id="inferenceModel" class="content hidden">
+        <!-- Content for Inference Model Page -->
+        <div id="app">
+    <div class="header">Model management</div>
+    <div id="modelList" class="model-list">
+        <!-- Model items will be inserted here -->
+        <button id="delete-btn" onclick="deleteModel()">Delete</button>
+    </div>
+</div>
+<h1 class="title">Original Video Screen</h1>
+<div class="video-container">
+    <video id="video" autoplay="true"></video>
+    <h1>Processed Video</h1>
+    <img id="processedVideo" src="" alt="Processed video will appear here" />
+</div>
+<div class="buttons-container">
+    <button id="startButton" onclick="startProcessing()">Start Camera and Processing</button>
+    <button id="stopProcessingButton" onclick="stopProcessing()">Stop Processing</button>
+    <button id="stopCameraButton" onclick="stopCamera()">Stop Camera</button>
+</div>
+    </div>
+</div>
+
+<!--refresh button for csv file-->
+<button
+        id="refreshButton"
+        style="width: 100px; height: 100px; color: #90ee90"
+>
+    Refresh
+</button>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+<script>
+    var socket = io('http://localhost:5000');
+    var video = document.getElementById('video');
+    var processedVideo = document.getElementById('processedVideo');
+    var isCapturing = false;
+    var mediaStream = null; // Global variable to hold the stream
+
+    function startCamera() {
+        navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+            .then(stream => {
+                video.srcObject = stream;
+                mediaStream = stream; // Assign the stream to the global variable
+            })
+            .catch(err => {
+                console.error("Error accessing the camera", err);
+            });
+    }
+
+    function captureAndSend() {
+        if (!isCapturing) {
+            isCapturing = true;
+            setInterval(() => {
+                var canvas = document.createElement('canvas');
+                canvas.width = 640;
+                canvas.height = 480;
+                var context = canvas.getContext('2d');
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                var imageData = canvas.toDataURL('image/jpeg');
+                socket.emit('image', imageData);
+            }, 100);
+        }
+    }
+
+    function startProcessing() {
+        startCamera();
+        fetch('http://localhost:5000/start')
+            .then(() => {
+                captureAndSend();
+            });
+    }
+
+function stopProcessing() {
+    fetch('http://localhost:5000/stop')
+        .then(() => {
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop()); // Stop each track on the stream
+            }
+            video.srcObject = null; // Remove the stream from the video element
+        });
+
+    processedVideo.src = ""; // Clear the processed video immediately after the button is clicked
+}
+function stopCamera() {
+    if (video.srcObject) {
+        video.srcObject.getTracks().forEach(track => track.stop()); // Stop each track on the stream
+        video.srcObject = null; // Remove the stream from the video element
+    }
+}
+
+    socket.on('response', function(data) {
+        processedVideo.src = 'data:image/jpeg;base64,' + data;
+    });
+
+    // function stopRecording() {
+    //     socket.emit('stop_recording');
+    // }
+    let models = [];
+
+    function fetchModels() {
+        fetch('http://localhost:5000/models')
+            .then(response => response.json())
+            .then(data => {
+                models = data.models;
+                displayModels(models);
+            });
+    }
+
+    function displayModels(modelsToShow) {
+        const modelList = document.getElementById('modelList');
+        modelList.innerHTML = '';
+        modelsToShow.forEach(model => {
+            modelList.innerHTML += `<div class="model-item">${model} <button onclick="deleteModel('${model}')">Delete</button></div>`;
+        });
+    }
+
+    function deleteModel(modelName) {
+        fetch('http://localhost:5000/delete_model', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ model: modelName })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    fetchModels(); // Refresh the model list after successful deletion
+                } else {
+                    alert(data.message); // Optionally alert the user if something goes wrong
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while deleting the model.'); // Alert the user about the error
+            });
+    }
+    document.addEventListener('DOMContentLoaded', fetchModels);
+
+
+
+
+    document.getElementById('saveToDatabase').addEventListener('click', function() {
+        fetch('/process-csv', { // Ensure this matches the Flask endpoint for processing the CSV
+            method: 'GET', // or 'POST' if you've implemented it as such
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('File successfully processed and data saved into database');
+            } else if (data.error) {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while processing the file.');
+        });
+    });
+    let trainingProgressChart,trainLoss_Chart,trainAccuracy_Chart , rocAucChart, precisionChart, recallChart, f1Chart, accuracyChart;
+    let progressChart
+    document.addEventListener('DOMContentLoaded', function() {
+        initCharts();
+        document.getElementById('trainbutton').addEventListener('click', startTrainingAndUpdates);
+        document.getElementById('epoch').addEventListener('change', updateEpochArray);
+    });
+
+    function updateEpochArray() {
+        const totalEpochs = parseInt(document.getElementById('epoch').value, 10);
+        const epochsArray = Array.from({length: totalEpochs}, (_, i) => i + 1);
+
+        // Update the labels for each chart
+        updateChartLabels(trainingProgressChart, epochsArray);
+        updateChartLabels(trainLoss_Chart, epochsArray);
+        updateChartLabels(trainAccuracy_Chart, epochsArray);
+        updateChartLabels(rocAucChart, epochsArray);
+        updateChartLabels(precisionChart, epochsArray);
+        updateChartLabels(recallChart, epochsArray);
+        updateChartLabels(f1Chart, epochsArray);
+        updateChartLabels(accuracyChart, epochsArray);
+        updateChartLabels(progressChart, epochsArray);
+    }
+    function updateChartLabels(chart, newLabels) {
+        if (chart) {
+            chart.data.labels = newLabels;
+            chart.update();
+        }
+    }
+    function initCharts() {
+        const totalEpochs = document.getElementById('epoch').value;
+        const epochsArray = Array.from({length: totalEpochs}, (_, i) => i + 1);
+
+        trainingProgressChart = new Chart(document.getElementById('trainingProgressChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: epochsArray,
+                datasets: [{
+                    label: 'Loss',
+                    data: [],
+                    borderColor: 'red',
+                    fill: false
+                }, {
+                    label: 'Accuracy',
+                    data: [],
+                    borderColor: 'blue',
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        trainLoss_Chart = new Chart(document.getElementById('trainLoss_Chart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: epochsArray,
+                datasets: [{
+                    label: 'Train Loss',
+                    data: [],
+                    borderColor: 'green',
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        trainAccuracy_Chart = new Chart(document.getElementById('trainAccuracy_Chart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: epochsArray,
+                datasets: [{
+                    label: 'Train Accuracy',
+                    data: [],
+                    borderColor: 'green',
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        rocAucChart = new Chart(document.getElementById('rocAucChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: epochsArray,
+                datasets: [{
+                    label: 'ROC AUC',
+                    data: [],
+                    borderColor: 'green',
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        precisionChart = new Chart(document.getElementById('precisionChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: epochsArray,
+                datasets: [{
+                    label: 'Precision',
+                    data: [],
+                    borderColor: 'green',
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        recallChart = new Chart(document.getElementById('recallChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: epochsArray,
+                datasets: [{
+                    label: 'Recall',
+                    data: [],
+                    borderColor: 'green',
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        f1Chart = new Chart(document.getElementById('f1Chart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: epochsArray,
+                datasets: [{
+                    label: 'F1',
+                    data: [],
+                    borderColor: 'green',
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        accuracyChart = new Chart(document.getElementById('accuracyChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: epochsArray,
+                datasets: [{
+                    label: 'Accuracy',
+                    data: [],
+                    borderColor: 'green',
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        progressChart = new Chart(document.getElementById('progressChart').getContext('2d'), {
+            type: 'bar', // Use bar type for progress bar
+            data: {
+                labels: epochsArray,
+                datasets: [{
+                    label: 'Progress',
+                    data: new Array(totalEpochs).fill(0), // Initialize with zeros
+                    backgroundColor: 'green', // Set the color of the bars
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100 // Assuming the progress is a percentage
+                    }
+                }
+            }
+        });
+    }
+
+    function startTrainingAndUpdates() {
+        train();
+        let time_interval =1000
+        setInterval(updateTrainingProgressChart, time_interval);
+        setInterval(updateTrainlossChart, time_interval);
+        setInterval(updateTrainAccuracyChart, time_interval);
+        setInterval(updateRocAucChart, time_interval);
+        setInterval(updatePrecisionChart, time_interval);
+        setInterval(updateRecallChart, time_interval);
+        setInterval(updateF1Chart, time_interval);
+        setInterval(updateAccuracyChart, time_interval);
+        setInterval(updateTrainingProgressChart, time_interval);
+        setInterval(updateProgress, 500);
+
+
+    }
+
+    function updateTrainingProgressChart() {
+        fetch('http://localhost:5000/get_train_process_update')
+            .then(response => response.json())
+            .then(data => {
+                if (data.epoch <= trainingProgressChart.data.labels.length) {
+                    trainingProgressChart.data.datasets[0].data[data.epoch] = data.loss;
+                    trainingProgressChart.data.datasets[1].data[data.epoch] = data.accuracy;
+                    trainingProgressChart.update();
+                }
+            });
+    }
+    function updateTrainlossChart() {
+        fetch('http://localhost:5000/metrics_update')
+            .then(response => response.json())
+            .then(data => {
+                if (data.epoch <= trainLoss_Chart.data.labels.length) {
+                    trainLoss_Chart.data.datasets[0].data[data.epoch] = data.avg_train_loss;
+                    trainLoss_Chart.update();
+                }
+});
+    }
+    function updateTrainAccuracyChart() {
+        fetch('http://localhost:5000/metrics_update')
+            .then(response => response.json())
+            .then(data => {
+                if (data.epoch <= trainAccuracy_Chart.data.labels.length) {
+                    trainAccuracy_Chart.data.datasets[0].data[data.epoch] = data.Train_accuracy;
+                    trainAccuracy_Chart.update();
+                }
+            });
+    }
+
+    function updateRocAucChart() {
+        fetch('http://localhost:5000/metrics_update')
+            .then(response => response.json())
+            .then(data => {
+                if (data.epoch <= rocAucChart.data.labels.length) {
+                    rocAucChart.data.datasets[0].data[data.epoch] = data.roc_auc;
+                    rocAucChart.update();
+                }
+            });
+    }
+    function updatePrecisionChart() {
+        fetch('http://localhost:5000/metrics_update')
+            .then(response => response.json())
+            .then(data => {
+                if (data.epoch <= precisionChart.data.labels.length) {
+                    precisionChart.data.datasets[0].data[data.epoch] = data.precisions;
+                    precisionChart.update();
+                }
+            });
+    }
+    function updateRecallChart() {
+        fetch('http://localhost:5000/metrics_update')
+            .then(response => response.json())
+            .then(data => {
+                if (data.epoch <= recallChart.data.labels.length) {
+                    recallChart.data.datasets[0].data[data.epoch] = data.recall;
+                    recallChart.update();
+                }
+            });
+    }
+    function updateF1Chart() {
+        fetch('http://localhost:5000/metrics_update')
+            .then(response => response.json())
+            .then(data => {
+                if (data.epoch <= f1Chart.data.labels.length) {
+                    f1Chart.data.datasets[0].data[data.epoch] = data.f1;
+                    f1Chart.update();
+                }
+            });
+    }
+    function updateAccuracyChart() {
+        fetch('http://localhost:5000/metrics_update')
+            .then(response => response.json())
+            .then(data => {
+                if (data.epoch <= accuracyChart.data.labels.length) {
+                    accuracyChart.data.datasets[0].data[data.epoch] = data.accuracies;
+                    accuracyChart.update();
+                }
+            });
+    }
+    function updateProgress() {
+        fetch('http://localhost:5000/get_train_process_update')
+            .then(response => response.json())
+            .then(data => {
+                if (data.epoch <= progressChart.data.labels.length) {
+                    progressChart.data.datasets[0].data[data.epoch] = data.progress;
+                    progressChart.update();
+                }
+            });
+    }
+
+
+    function train() {
+        fetch('http://localhost:5000/train', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Server responded with an error!');
+                }
+            })
+            .then(data => {
+                console.log('Success:', data);
+                document.getElementById('train_process_update').innerText = 'Training process successfully!';
+
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                document.getElementById('train_process_update').innerText = 'An error occurred when train the model!';
+            });
+    }
+    function stop() {
+        fetch('http://localhost:5000/stop', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Server responded with an error!');
+                }
+            })
+            .then(data => {
+                console.log('Success:', data);
+                document.getElementById('train_process_update').innerText = 'Training process stopped successfully!';
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                document.getElementById('train_process_update').innerText = 'An error occurred when stopping the training!';
+            });
+    }
+
+    document.getElementById('epoch').addEventListener('change', initCharts);
+
+
+
+    function changeTab(tabName) {
+        // Hide all elements with class="content" by default */
+        var i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("content");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+        // Remove the background color of all tablinks/buttons
+        tablinks = document.getElementsByClassName("tab");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].style.backgroundColor = "";
+        }
+        // Show the specific tab content
+        document.getElementById(tabName).style.display = "block";
+    }
+
+    function populateModelDropdown() {
+    // Fetch the list of models from the server
+    fetch('http://localhost:5000/get_models')
+        .then(response => response.json())
+        .then(data => {
+            // Get the select element
+            var select = document.getElementById('model');
+
+            // Remove any existing options
+            while (select.firstChild) {
+                select.removeChild(select.firstChild);
+            }
+
+            // Add an option for each model
+            data.models.forEach(model => {
+                var option = document.createElement('option');
+                option.value = model;
+                option.text = model;
+                select.appendChild(option);
+            });
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+}
+
+    // Get the element with id="defaultOpen" and click on it on page load
+    window.onload = function() {
+        document.querySelector('.tab').click();
+        populateModelDropdown();
+
+    }
+    function validateEpoch(epoch) {
+        return Number.isInteger(parseFloat(epoch)) && parseFloat(epoch) > 0;
+    }
+
+    function submitForm() {
+        const learningRate = document.getElementById('learningRate').value;
+        const epoch = document.getElementById('epoch').value;
+        const lossFunction = document.getElementById('lossFunction').value;
+        const neuralNetwork = document.getElementById('neuralNetwork').value;
+        const optimizer = document.getElementById('optimizer').value;
+        const model = document.getElementById('model').value;
+        const batchSize = document.getElementById('batchSize').value;
+
+        // Validate epoch input
+        if (!validateEpoch(epoch)) {
+            document.getElementById('epochError').textContent = 'Please enter an integer value.';
+            return;
+        } else {
+            document.getElementById('epochError').textContent = '';
+        }
+
+
+        const hyperparameters = {
+            learningRate: parseFloat(learningRate),
+            epoch: parseInt(epoch, 10),
+            batchSize: parseInt(batchSize, 10),
+            lossFunction,
+            neuralNetwork,
+            optimizer,
+            model,
+        };
+
+        // Send data to server
+        fetch('http://localhost:5000/set_hyperparameters', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(hyperparameters),
+        })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Server responded with an error!');
+                }
+            })
+            .then(data => {
+                console.log('Success:', data);
+                document.getElementById('responseMessage').innerText = 'Hyperparameters set successfully!';
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                document.getElementById('responseMessage').innerText = 'Hyperparameters set successfully';
+            });
+    }
+
+
+</script>
+</body>
+</html>

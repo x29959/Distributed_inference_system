@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- 新增 viewport -->
+    <title>Robot Control</title>
+    <style>
+        .slider-container {
+            display: none; /* 移除滑桿 */
+        }
+
+        .direction-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 10px;
+            justify-content: center;
+            margin: 20px auto;
+        }
+
+        .direction-button {
+            width: 150px;
+            height: 150px;
+            border-radius: 15px;
+            background-color: #555;
+            color: white;
+            font-size: 20px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .direction-button.forward {
+            grid-column: 2;
+            grid-row: 1;
+            background-color: #4CAF50;
+        }
+
+        .direction-button.backward {
+            grid-column: 2;
+            grid-row: 3;
+            background-color: #f44336;
+        }
+
+        .direction-button.left {
+            grid-column: 1;
+            grid-row: 2;
+            background-color: #2196F3;
+        }
+
+        .direction-button.right {
+            grid-column: 3;
+            grid-row: 2;
+            background-color: #2196F3;
+        }
+
+        .direction-button:hover {
+            filter: brightness(1.2);
+            transform: scale(1.05);
+        }
+
+        .direction-button:active {
+            transform: scale(0.95);
+        }
+
+        .button-container {
+            text-align: center;
+            margin-top: 30px; /* 調整間距 */
+        }
+
+        .fire-container, .follow-container {
+            display: flex;
+            justify-content: center;
+            margin: 15px 0;
+        }
+
+        .control-button {
+            width: 100px; /* 增大按鈕尺寸 */
+            height: 100px;
+            border-radius: 50%;
+            background-color: #ff4757; /* Fire 按鈕為紅色 */
+            color: white;
+            font-size: 20px; /* 增大文字大小 */
+            border: none;
+            cursor: pointer;
+            margin: 0 20px; /* 調整按鈕間距 */
+            transition: background-color 0.3s, transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .follow-container .control-button {
+            background-color: #1e90ff; /* Follow 按鈕為藍色 */
+        }
+
+        .control-button:hover {
+            background-color: #ff6b81;
+        }
+
+        .follow-container .control-button:hover {
+            background-color: #63a4ff;
+        }
+
+        .control-button:active {
+            transform: scale(0.95);
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f9f9f9;
+        }
+
+        .direction-buttons, .button-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+            max-width: 400px;
+            padding: 10px;
+        }
+
+        .fire-container, .follow-container {
+            display: flex;
+            justify-content: center;
+            margin: 10px 0;
+        }
+
+        @media (max-width: 600px) {
+            .direction-buttons {
+                grid-template-areas:
+                    ". Forward ."
+                    "Left . Right"
+                    ". Backward .";
+                max-width: 250px; /* 調整行動裝置上的容器寬度 */
+            }
+
+            .direction-button {
+                width: 100px; /* 調整按鈕尺寸 */
+                height: 100px;
+                font-size: 18px;
+            }
+
+            .control-button {
+                width: 80px;
+                height: 80px;
+                font-size: 18px;
+                margin: 0 15px;
+            }
+
+            .banner {
+                font-size: 20px;
+                padding: 10px 0;
+            }
+        }
+
+        .banner {
+            width: 100%;
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 15px 0;
+            font-size: 26px;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .angle-control {
+            margin: 20px auto;
+            text-align: center;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            max-width: 400px;
+        }
+
+        .angle-input {
+            font-size: 24px;
+            width: 120px;
+            height: 50px;
+            text-align: center;
+            margin: 10px;
+            border: 2px solid #555;
+            border-radius: 5px;
+        }
+
+        .angle-button {
+            width: 140px;
+            height: 60px;
+            font-size: 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+            transition: background-color 0.3s;
+        }
+
+        .angle-button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="banner">Robot Control Panel</div>
+    <div class="text-center mb-6">
+        <a href="/" class="inline-block">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="logo" class="logo" style="width: 400px;">
+        </a>
+    </div>
+
+    <div class="angle-control">
+        <input type="number" id="custom-angle" class="angle-input" placeholder="角度" value="30">
+        <button class="angle-button" id="rotate-button">旋轉</button>
+    </div>
+
+    <div class="direction-buttons">
+        <button class="direction-button forward" id="forward-button">↑<br>Forward</button>
+        <button class="direction-button left" id="left-button">←<br>Left</button>
+        <button class="direction-button right" id="right-button">→<br>Right</button>
+        <button class="direction-button backward" id="backward-button">↓<br>Backward</button>
+    </div>
+
+    <div class="button-container">
+        <div class="fire-container">
+            <button class="control-button" id="fire-button">Fire</button>
+        </div>
+        <div class="follow-container">
+            <button class="control-button" id="follow-button">Follow</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const fireButton = document.getElementById('fire-button');
+            const followButton = document.getElementById('follow-button');
+
+            const forwardButton = document.getElementById('forward-button');
+            const backwardButton = document.getElementById('backward-button');
+            const leftButton = document.getElementById('left-button');
+            const rightButton = document.getElementById('right-button');
+
+            const rotateButton = document.getElementById('rotate-button');
+            const customAngleInput = document.getElementById('custom-angle');
+            const  DEVICE_A_URL = 'http://100.90.232.15:5000';
+
+            rotateButton.onclick = function() {
+                const angle = customAngleInput.value;
+                if (angle !== '') {
+                    sendControlCommand(`Rotate ${angle}`);
+                }
+            };
+
+            forwardButton.onclick = function() {
+                sendControlCommand('Forward');
+            };
+
+            backwardButton.onclick = function() {
+                sendControlCommand('Backward');
+            };
+
+            leftButton.onclick = function() {
+                sendControlCommand('Turn Left');
+            };
+
+            rightButton.onclick = function() {
+                sendControlCommand('Turn Right');
+            };
+
+            fireButton.onclick = function() {
+                sendControlCommand('Fire');
+            };
+
+            followButton.onclick = function() {
+                sendControlCommand('Follow');
+            };
+
+            function sendControlCommand(command) {
+                fetch(`${DEVICE_A_URL}/control?command=${command}`, { method: 'GET' })
+                    .then(response => response.text())
+                    .then(data => console.log(data))
+                    .catch(error => console.error('Error:', error));
+            }
+        });
+    </script>
+</body>
+</html>

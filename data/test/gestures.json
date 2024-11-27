@@ -1,0 +1,17 @@
+{
+    "username": "test",
+    "gestures": [
+        {
+            "name": "InitialGesture",
+            "index": 9
+        },
+        {
+            "name": "kk",
+            "index": 10
+        },
+        {
+            "name": "right",
+            "index": 11
+        }
+    ]
+}

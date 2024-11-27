@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>T1-204A LAB Gesture Recognition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    />
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    <style>
+        /* 確保所有圖表有固定高度以防止重疊 */
+        canvas {
+            max-width: 100%;
+            height: 400px !important;
+        }
+    </style>
+</head>
+<body class="bg-white text-black">
+    <div class="text-center mb-6">
+        <a href="/" class="inline-block">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="logo" class="logo" style="width: 400px;">
+        </a>
+    </div>
+
+    <!-- Content for Model Retrain Page -->
+    <h2 class="text-center text-3xl font-bold text-teal-500 mb-6">Set Hyperparameter</h2>
+    
+    <!-- 模式选择 -->
+    <div class="mx-auto px-4 mb-6">
+        <div class="flex flex-col md:flex-row items-center mb-6">
+            <label class="text-black font-bold text-xl md:w-1/4 mb-2 md:mb-0" for="mode">
+                Mode
+            </label>
+            <select class="bg-gray-200 border-2 border-gray-200 rounded w-full md:w-3/4 py-3 px-4 text-lg text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-teal-500" id="mode" onchange="modeChanged()">
+                <option value="default">Default Mode</option>
+                <option value="custom">Custom Mode</option>
+            </select>
+        </div>
+        
+        <!-- 用户名选择（仅在自定义模式下显示） -->
+        <div id="usernameDiv" class="flex flex-col md:flex-row items-center mb-6" style="display: none;">
+            <label class="text-black font-bold text-xl md:w-1/4 mb-2 md:mb-0" for="username">
+                Username
+            </label>
+            <select class="bg-gray-200 border-2 border-gray-200 rounded w-full md:w-3/4 py-3 px-4 text-lg text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-teal-500" id="username" onchange="loadUserModels()">
+                <!-- 用户列表将通过 JavaScript 填充 -->
+            </select>
+        </div>
+        
+        <!-- 模型选择（仅在自定义模式下显示） -->
+        <div id="userModelDiv" class="flex flex-col md:flex-row items-center mb-6" style="display: none;">
+            <label class="text-black font-bold text-xl md:w-1/4 mb-2 md:mb-0" for="userModel">
+                Select Model
+            </label>
+            <select class="bg-gray-200 border-2 border-gray-200 rounded w-full md:w-3/4 py-3 px-4 text-lg text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-teal-500" id="userModel">
+                <!-- 用户模型列表将通过 JavaScript 填充 -->
+            </select>
+        </div>
+
+        <!-- 神经网络选择 -->
+        <div id="neuralNetworkDiv" class="flex flex-col md:flex-row items-center mb-6">
+            <label class="text-black font-bold text-xl md:w-1/4 mb-2 md:mb-0" for="neuralNetwork">Neural Network</label>
+            <select class="bg-gray-200 border-2 border-gray-200 rounded w-full md:w-3/4 py-3 px-4 text-lg text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-teal-500" id="neuralNetwork" onchange="loadUserModels()">
+                <option value="Transformer">Transformer</option>
+                <option value="CNN_LSTM">CNN LSTM</option>
+                <option value="CBiLSTM">CNN BiLSTM</option>
+                <option value="GRUClassifier">GRUClassifier</option>
+                <option value="CRNN">CRNN</option>
+            </select>
+        </div>
+
+        <!-- Default Mode 的模型選擇 -->
+        <div id="modelDiv" class="flex flex-col md:flex-row items-center mb-6">
+            <label class="text-black font-bold text-xl md:w-1/4 mb-2 md:mb-0" for="model">
+                Model
+            </label>
+            <select class="bg-gray-200 border-2 border-gray-200 rounded w-full md:w-3/4 py-3 px-4 text-lg text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-teal-500" id="model">
+                <!-- 模型列表将通过 JavaScript 填充 -->
+            </select>
+        </div>
+    </div>
+    
+    <!-- 训练参数设置表单 -->
+    <form id="hyperparametersForm" class="mx-auto px-4 mb-6">
+        <!-- 学习率 -->
+        <div class="flex flex-col md:flex-row items-center mb-6">
+            <label class="text-black font-bold text-xl md:w-1/4 mb-2 md:mb-0" for="learningRate">
+                Learning Rate
+            </label>
+            <input class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full md:w-3/4 py-3 px-4 text-lg text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-teal-500" id="learningRate" type="number" step="0.0001" min="0" value="0.001">
+        </div>
+        <!-- Epoch -->
+        <div class="flex flex-col md:flex-row items-center mb-6">
+            <label class="text-black font-bold text-xl md:w-1/4 mb-2 md:mb-0" for="epoch">
+                Epoch
+            </label>
+            <input class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full md:w-3/4 py-3 px-4 text-lg text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-teal-500" id="epoch" type="number" min="1" value="10">
+            <span id="epochError" class="text-red-500 text-xs pl-2"></span>
+        </div>
+        <!-- Batch Size -->
+        <div class="flex flex-col md:flex-row items-center mb-6">
+            <label class="text-black font-bold text-xl md:w-1/4 mb-2 md:mb-0" for="batchSize">
+                Batch Size
+            </label>
+            <input class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full md:w-3/4 py-3 px-4 text-lg text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-teal-500" id="batchSize" type="number" min="1" value="32">
+        </div>
+        <!-- 损失函数 -->
+        <div class="flex flex-col md:flex-row items-center mb-6">
+            <label class="text-black font-bold text-xl md:w-1/4 mb-2 md:mb-0" for="lossFunction">
+                Loss Function
+            </label>
+            <select class="bg-gray-200 border-2 border-gray-200 rounded w-full md:w-3/4 py-3 px-4 text-lg text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-teal-500" id="lossFunction">
+                <option value="CrossEntropyLoss">CrossEntropyLoss</option>
+                <option value="NLLLoss">Negative log likelihood (NLL) loss</option>
+            </select>
+        </div>
+        <!-- 优化器 -->
+        <div class="flex flex-col md:flex-row items-center mb-6">
+            <label class="text-black font-bold text-xl md:w-1/4 mb-2 md:mb-0" for="optimizer">
+                Optimizer
+            </label>
+            <select class="bg-gray-200 border-2 border-gray-200 rounded w-full md:w-3/4 py-3 px-4 text-lg text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-teal-500" id="optimizer">
+                <option value="adam">adam</option>
+                <option value="sgd">SGD</option>
+                <!-- 添加更多优化器选项 -->
+            </select>
+        </div>
+
+        <!-- 确认设置按钮 -->
+        <div class="flex flex-col md:flex-row items-center mb-6">
+            <div class="md:w-1/4"></div>
+            <div class="md:w-3/4">
+                <button class="shadow bg-teal-500 hover:bg-teal-400 focus:shadow-outline focus:outline-none text-white font-bold text-lg py-3 px-6 rounded w-full md:w-auto" type="button" onclick="submitForm()">
+                    Yes, Set it!
+                </button>
+            </div>
+            <!-- 响应消息 -->
+            <div class="bg-blue-500 mt-4 md:mt-0 text-white px-4 py-2 rounded w-full md:w-auto text-center" id="responseMessage"></div>
+        </div>
+
+        <!-- 开始训练按钮 -->
+        <div class="flex flex-col md:flex-row items-center mb-6">
+            <div class="md:w-1/4"></div>
+            <div class="md:w-3/4 flex flex-col space-y-4 md:space-y-0 md:flex-row md:space-x-4">
+                <button class="shadow bg-red-500 hover:bg-red-400 focus:shadow-outline focus:outline-none text-white font-bold text-lg py-3 px-6 rounded w-full md:w-auto" type="button" onclick="train()" id="trainbutton">
+                    Start Retraining the model!
+                </button>
+                <!-- 停止训练按钮 -->
+                <button class="shadow bg-red-500 hover:bg-red-400 focus:shadow-outline focus:outline-none text-white font-bold text-lg py-3 px-6 rounded w-full md:w-auto" type="button" onclick="stop()" id="stopbutton">
+                    Stop Retraining the model!
+                </button>
+            </div>
+            <div class="bg-green-500 mt-4 md:mt-0 text-white px-4 py-2 rounded w-full md:w-auto text-center" id="train_process_update"></div>
+        </div>
+    </form>
+
+    <!-- 可视化部分 -->
+    <div class="mx-auto px-4 mb-6">
+        <div class="mb-6">
+            <h2 class="text-center text-3xl font-bold mb-4" style="color: #7e0ce3">Train Model Real Time Curve</h2>
+            <canvas id="progressChart" class="w-full h-96"></canvas>
+        </div>
+        <div class="mb-6">
+            <h2 class="text-center text-3xl font-bold mb-4" style="color: #7e0ce3">Training Progress</h2>
+            <canvas id="trainingProgressChart" class="w-full h-96"></canvas>
+        </div>
+        <div class="mb-6">
+            <h2 class="text-center text-3xl font-bold mb-4" style="color: #7e0ce3">Train Model Metrics</h2>
+            <div class="space-y-6">
+                <div>
+                    <canvas id="trainLoss_Chart" class="w-full h-96"></canvas>
+                </div>
+                <div>
+                    <canvas id="trainAccuracy_Chart" class="w-full h-96"></canvas>
+                </div>
+                <div>
+                    <canvas id="precisionChart" class="w-full h-96"></canvas>
+                </div>
+                <div>
+                    <canvas id="recallChart" class="w-full h-96"></canvas>
+                </div>
+                <div>
+                    <canvas id="f1Chart" class="w-full h-96"></canvas>
+                </div>
+                <div>
+                    <canvas id="accuracyChart" class="w-full h-96"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+   
+
+    <script>
+        let trainingProgressChart, trainLoss_Chart, trainAccuracy_Chart, precisionChart, recallChart, f1Chart, accuracyChart;
+        let progressChart;
+        const  DEVICE_A_URL = 'http://100.90.232.15:5000';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化页面
+            modeChanged();
+            initCharts();
+            document.getElementById('trainbutton').addEventListener('click', startTrainingAndUpdates);
+            document.getElementById('epoch').addEventListener('change', updateEpochArray);
+            
+            // 加載用戶列表（僅適用於 Custom Mode）
+            fetch('http://100.68.188.72:5000/get_users')
+                .then(response => response.json())
+                .then(data => {
+                    let usernameSelect = document.getElementById('username');
+                    usernameSelect.innerHTML = ''; // 清空之前的選項
+                    data.users.forEach(user => {
+                        let option = document.createElement('option');
+                        option.value = user;
+                        option.text = user;
+                        usernameSelect.add(option);
+                    });
+                    // 加載模型列表
+                    loadUserModels();
+                })
+                .catch(error => {
+                    console.error('Error fetching users:', error);
+                    alert('Error fetching users!');
+                });
+        });
+
+        function updateEpochArray() {
+            const totalEpochs = parseInt(document.getElementById('epoch').value, 10);
+            const epochsArray = Array.from({length: totalEpochs}, (_, i) => i + 1);
+
+            // 更新每個圖表的標籤
+            updateChartLabels(trainingProgressChart, epochsArray);
+            updateChartLabels(trainLoss_Chart, epochsArray);
+            updateChartLabels(trainAccuracy_Chart, epochsArray);
+            updateChartLabels(precisionChart, epochsArray);
+            updateChartLabels(recallChart, epochsArray);
+            updateChartLabels(f1Chart, epochsArray);
+            updateChartLabels(accuracyChart, epochsArray);
+            updateChartLabels(progressChart, epochsArray);
+        }
+
+        function updateChartLabels(chart, newLabels) {
+            if (chart) {
+                chart.data.labels = newLabels;
+                chart.update();
+            }
+        }
+
+        function initCharts() {
+            const totalEpochs = document.getElementById('epoch').value;
+            const epochsArray = Array.from({length: totalEpochs}, (_, i) => i + 1);
+
+            trainingProgressChart = new Chart(document.getElementById('trainingProgressChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: epochsArray,
+                    datasets: [{
+                        label: 'Loss',
+                        data: [],
+                        borderColor: 'red',
+                        fill: false
+                    }, {
+                        label: 'Accuracy',
+                        data: [],
+                        borderColor: 'blue',
+                        fill: false
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            trainLoss_Chart = new Chart(document.getElementById('trainLoss_Chart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: epochsArray,
+                    datasets: [{
+                        label: 'Train Loss',
+                        data: [],
+                        borderColor: 'green',
+                        fill: false
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            trainAccuracy_Chart = new Chart(document.getElementById('trainAccuracy_Chart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: epochsArray,
+                    datasets: [{
+                        label: 'Train Accuracy',
+                        data: [],
+                        borderColor: 'green',
+                        fill: false
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            precisionChart = new Chart(document.getElementById('precisionChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: epochsArray,
+                    datasets: [{
+                        label: 'Precision',
+                        data: [],
+                        borderColor: 'green',
+                        fill: false
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            recallChart = new Chart(document.getElementById('recallChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: epochsArray,
+                    datasets: [{
+                        label: 'Recall',
+                        data: [],
+                        borderColor: 'green',
+                        fill: false
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            f1Chart = new Chart(document.getElementById('f1Chart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: epochsArray,
+                    datasets: [{
+                        label: 'F1',
+                        data: [],
+                        borderColor: 'green',
+                        fill: false
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            accuracyChart = new Chart(document.getElementById('accuracyChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: epochsArray,
+                    datasets: [{
+                        label: 'Accuracy',
+                        data: [],
+                        borderColor: 'green',
+                        fill: false
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            progressChart = new Chart(document.getElementById('progressChart').getContext('2d'), {
+                type: 'bar', // Use bar type for progress bar
+                data: {
+                    labels: epochsArray,
+                    datasets: [{
+                        label: 'Progress',
+                        data: new Array(totalEpochs).fill(0), // Initialize with zeros
+                        backgroundColor: 'green', // Set the color of the bars
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100 // Assuming the progress is a percentage
+                        }
+                    }
+                }
+            });
+        }
+
+        function startTrainingAndUpdates() {
+            train();
+            let time_interval = 2000; // 每 2 秒更新一次
+            setInterval(updateTrainingProgressChart, time_interval);
+            setInterval(updateTrainLossChart, time_interval);
+            setInterval(updateTrainAccuracyChart, time_interval);
+            setInterval(updatePrecisionChart, time_interval);
+            setInterval(updateRecallChart, time_interval);
+            setInterval(updateF1Chart, time_interval);
+            setInterval(updateAccuracyChart, time_interval);
+            setInterval(updateProgress, 2000); // 也降低 progress 的更新頻率
+        }
+        
+        let errorDisplayed = false;
+        
+        function updateTrainingProgressChart() {
+            fetch(`${DEVICE_A_URL}/get_train_process_update`)
+                .then(response => {
+                    if (response.ok) {
+                        errorDisplayed = false;
+                        return response.json();
+                    } else {
+                        return response.json().then(err => { throw new Error(err.message || 'Server responded with an error!'); });
+                    }
+                })
+                .then(data => {
+                    if (data && typeof data === 'object' && 'epoch' in data) {
+                        // 更新訓練進度圖表
+                        if (data.epoch <= trainingProgressChart.data.labels.length) {
+                            trainingProgressChart.data.datasets[0].data[data.epoch - 1] = data.loss;
+                            trainingProgressChart.data.datasets[1].data[data.epoch - 1] = data.accuracy;
+                            trainingProgressChart.update();
+                        }
+                        // 更新進度條圖表
+                        if (data.progress !== undefined && data.epoch <= progressChart.data.labels.length) {
+                            progressChart.data.datasets[0].data[data.epoch - 1] = data.progress;
+                            progressChart.update();
+                        }
+                    } else {
+                        throw new Error('Invalid data format received from server.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating training progress chart:', error);
+                    if (!errorDisplayed) {
+                        document.getElementById('train_process_update').innerText = `Error: ${error.message}`;
+                        document.getElementById('train_process_update').className = 'bg-red-500 text-white p-2 rounded';
+                        errorDisplayed = true;
+                    }
+                });
+        }
+        
+        function updateTrainLossChart() {
+            fetch(`${DEVICE_A_URL}/metrics_update`)
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        return response.json().then(err => { throw new Error(err.message || 'Server responded with an error!'); });
+                    }
+                })
+                .then(data => {
+                    if (data.epoch <= trainLoss_Chart.data.labels.length) {
+                        trainLoss_Chart.data.datasets[0].data[data.epoch - 1] = data.avg_train_loss;
+                        trainLoss_Chart.update();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating train loss chart:', error);
+                });
+        }
+        
+        function updateTrainAccuracyChart() {
+            fetch(`${DEVICE_A_URL}/metrics_update`)
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        return response.json().then(err => { throw new Error(err.message || 'Server responded with an error!'); });
+                    }
+                })
+                .then(data => {
+                    if (data.epoch <= trainAccuracy_Chart.data.labels.length) {
+                        trainAccuracy_Chart.data.datasets[0].data[data.epoch - 1] = data.Train_accuracy;
+                        trainAccuracy_Chart.update();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating train accuracy chart:', error);
+                });
+        }
+        
+        function updatePrecisionChart() {
+            fetch(`${DEVICE_A_URL}/metrics_update`)
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        return response.json().then(err => { throw new Error(err.message || 'Server responded with an error!'); });
+                    }
+                })
+                .then(data => {
+                    if (data.epoch <= precisionChart.data.labels.length) {
+                        precisionChart.data.datasets[0].data[data.epoch - 1] = data.precision;
+                        precisionChart.update();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating precision chart:', error);
+                });
+        }
+        
+        function updateRecallChart() {
+            fetch(`${DEVICE_A_URL}/metrics_update`)
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        return response.json().then(err => { throw new Error(err.message || 'Server responded with an error!'); });
+                    }
+                })
+                .then(data => {
+                    if (data.epoch <= recallChart.data.labels.length) {
+                        recallChart.data.datasets[0].data[data.epoch - 1] = data.recall;
+                        recallChart.update();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating recall chart:', error);
+                });
+        }
+        
+        function updateF1Chart() {
+            fetch(`${DEVICE_A_URL}/metrics_update`)
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        return response.json().then(err => { throw new Error(err.message || 'Server responded with an error!'); });
+                    }
+                })
+                .then(data => {
+                    if (data.epoch <= f1Chart.data.labels.length) {
+                        f1Chart.data.datasets[0].data[data.epoch - 1] = data.f1;
+                        f1Chart.update();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating f1 chart:', error);
+                });
+        }
+        
+        function updateAccuracyChart() {
+            fetch(`${DEVICE_A_URL}/metrics_update`)
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        return response.json().then(err => { throw new Error(err.message || 'Server responded with an error!'); });
+                    }
+                })
+                .then(data => {
+                    if (data.epoch <= accuracyChart.data.labels.length) {
+                        accuracyChart.data.datasets[0].data[data.epoch - 1] = data.accuracy;
+                        accuracyChart.update();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating accuracy chart:', error);
+                });
+        }
+        
+        function updateProgress() {
+            fetch(`${DEVICE_A_URL}/get_train_process_update`)
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        return response.json().then(err => { throw new Error(err.message || 'Server responded with an error!'); });
+                    }
+                })
+                .then(data => {
+                    if (data.epoch <= progressChart.data.labels.length) {
+                        progressChart.data.datasets[0].data[data.epoch - 1] = data.progress;
+                        progressChart.update();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating progress chart:', error);
+                });
+        }
+        
+        function validateEpoch(epoch) {
+            const parsed = parseInt(epoch, 10);
+            return Number.isInteger(parsed) && parsed > 0;
+        }
+        
+
+
+        function modeChanged() {
+            let mode = document.getElementById('mode').value;
+            let usernameDiv = document.getElementById('usernameDiv');
+            let userModelDiv = document.getElementById('userModelDiv');
+            let modelDiv = document.getElementById('modelDiv');
+
+            if (mode === 'custom') {
+                usernameDiv.style.display = 'block';
+                userModelDiv.style.display = 'block';
+                modelDiv.style.display = 'none';
+            } else {
+                usernameDiv.style.display = 'none';
+                userModelDiv.style.display = 'none';
+                modelDiv.style.display = 'block';
+            }
+
+            loadUserModels();
+        }
+
+        function loadUserModels() {
+            let mode = document.getElementById('mode').value;
+            let neuralNetwork = document.getElementById('neuralNetwork').value;
+
+            if (mode === 'custom') {
+                let username = document.getElementById('username').value;
+                fetch(`${DEVICE_A_URL}/get_user_models/${username}/${neuralNetwork}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        let userModelSelect = document.getElementById('userModel');
+                        userModelSelect.innerHTML = ''; // 清空之前的選項
+
+                        if (data.models && data.models.length > 0) {
+                            data.models.forEach(model => {
+                                let option = document.createElement('option');
+                                option.value = model;
+                                option.text = model;
+                                userModelSelect.add(option);
+                            });
+                        }
+
+                        // 添加“Train from scratch”選項
+                        let option = document.createElement('option');
+                        option.value = 'train_scratch';
+                        option.text = 'Train from scratch';
+                        userModelSelect.add(option);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching user models:', error);
+                        alert('Error fetching user models!');
+                    });
+            } else { // default mode
+                let username = 'default';
+                fetch(`${DEVICE_A_URL}/get_user_models/${username}/${neuralNetwork}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        let modelSelect = document.getElementById('model');
+                        modelSelect.innerHTML = ''; // 清空之前的選項
+
+                        if (data.models && data.models.length > 0) {
+                            data.models.forEach(model => {
+                                let option = document.createElement('option');
+                                option.value = model;
+                                option.text = model;
+                                modelSelect.add(option);
+                            });
+                        }
+
+                        // 添加“Train from scratch”選項
+                        let option = document.createElement('option');
+                        option.value = 'train_scratch';
+                        option.text = 'Train from scratch';
+                        modelSelect.add(option);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching models:', error);
+                        alert('Error fetching models!');
+                    });
+            }
+        }
+
+        function submitForm() {
+            const learningRate = document.getElementById('learningRate').value;
+            const epoch = document.getElementById('epoch').value;
+            const batchSize = document.getElementById('batchSize').value;
+            const lossFunction = document.getElementById('lossFunction').value;
+            const optimizer = document.getElementById('optimizer').value;
+            const neuralNetwork = document.getElementById('neuralNetwork').value;
+        
+            // 获取模式、用户名、模型类型、模型名称
+            const mode = document.getElementById('mode').value;
+            const username = mode === 'custom' ? document.getElementById('username').value : 'default';
+            const model_name = mode === 'custom' ? document.getElementById('userModel').value : document.getElementById('model').value;
+        
+            // Validate epoch input
+            if (!validateEpoch(epoch)) {
+                document.getElementById('epochError').textContent = 'Please enter an integer value.';
+                return;
+            } else {
+                document.getElementById('epochError').textContent = '';
+            }
+        
+            const hyperparametersData = {
+                learningRate: parseFloat(learningRate),
+                epoch: parseInt(epoch, 10),
+                batchSize: parseInt(batchSize, 10),
+                lossFunction,
+                optimizer,
+                neuralNetwork,
+                username,
+                model_name
+            };
+        
+            // 发送设置超参数请求
+            fetch(`${DEVICE_A_URL}/set_hyperparameters`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(hyperparametersData),
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    return response.json().then(err => { throw new Error(err.message || 'Server responded with an error!'); });
+                }
+            })
+            .then(data => {
+                console.log('Success:', data);
+                document.getElementById('responseMessage').innerText = 'Hyperparameters set successfully!';
+                document.getElementById('responseMessage').className = 'bg-green-500 text-white p-2 rounded';
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                document.getElementById('responseMessage').innerText = `Error: ${error.message}`;
+                document.getElementById('responseMessage').className = 'bg-red-500 text-white p-2 rounded';
+            });
+        }
+
+
+        function train() {
+    // 发送启动训练请求
+    fetch(`${DEVICE_A_URL}/train`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            return response.json().then(err => { throw new Error(err.message || 'Failed to start training!'); });
+        }
+    })
+    .then(data => {
+        console.log('Success:', data);
+        document.getElementById('train_process_update').innerText = 'Training process started successfully!';
+        document.getElementById('train_process_update').className = 'bg-green-500 text-white p-2 rounded';
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+        document.getElementById('train_process_update').innerText = `Error: ${error.message}`;
+        document.getElementById('train_process_update').className = 'bg-red-500 text-white p-2 rounded';
+    });
+}
+
+        function stop() {
+            fetch(`${DEVICE_A_URL}/stop_train`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    return response.json().then(err => { throw new Error(err.message || 'Server responded with an error!'); });
+                }
+            })
+            .then(data => {
+                console.log('Success:', data);
+                document.getElementById('train_process_update').innerText = 'Training process stopped successfully!';
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                document.getElementById('train_process_update').innerText = `Error: ${error.message}`;
+            });
+        }
+
+        window.onload = function() {
+            populateModelDropdown();
+        }
+
+        document.getElementById('epoch').addEventListener('change', initCharts);
+
+
+        function changeTab(tabName) {
+            // Hide all elements with class="content" by default
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            // Remove the background color of all tablinks/buttons
+            tablinks = document.getElementsByClassName("tab");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].style.backgroundColor = "";
+            }
+            // Show the specific tab content
+            document.getElementById(tabName).style.display = "block";
+        }
+
+        function populateModelDropdown() {
+            // Fetch the list of models from the server
+            fetch(`${DEVICE_A_URL}/get_models`)
+                .then(response => response.json())
+                .then(data => {
+                    // Get the select element
+                    var select = document.getElementById('model');
+
+                    // Remove any existing options
+                    while (select.firstChild) {
+                        select.removeChild(select.firstChild);
+                    }
+
+                    // Add an option for each model
+                    data.models.forEach(model => {
+                        var option = document.createElement('option');
+                        option.value = model;
+                        option.text = model;
+                        select.appendChild(option);
+                    });
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+        }
+    </script>
+</body>
+</html>

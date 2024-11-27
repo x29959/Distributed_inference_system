@@ -1,0 +1,397 @@
+.container {
+  background-color: #548ee7;
+  width: 900px;
+  padding: 50px;
+  border-radius: 10px;
+}
+.time-navigation {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.time-display {
+  margin: 0 10px;
+  padding: 5px;
+  background-color: #ADD8E6;
+  border-radius: 5px;
+}
+.label-button {
+  background-color: #ADD8E6;
+  border: none;
+  padding: 10px;
+  margin: 5px 0;
+  width: 100%;
+  border-radius: 5px;
+}
+.label-button.active {
+  background-color: #90EE90; /* Light green to indicate active label */
+}
+
+.bg-blue-500 {
+  background-color: #ADD8E6;
+  margin-left: 10px;
+}
+.bg-green-500 {
+  background-color: #90EE90;
+  margin-left: 10px;
+}
+
+.logo {
+    width: 120%;
+    height: 120%;
+    object-fit: contain;
+    }
+
+
+#leftButton {
+  margin-right: 5px;
+  position: relative;
+  background-size: auto;
+
+
+}
+#rightButton {
+  margin-left: 5px;
+  position: relative;
+  background-size: auto;
+
+}
+#prevButton {
+  margin-right: 5px;
+  position: relative;
+  background-size: auto;
+  background: aqua;
+}
+#nextButton {
+  margin-left: 5px;
+  position: relative;
+    background-size: auto;
+    background: aqua;
+}
+#saveButton {
+  margin-left: 5px;
+position: relative;
+  /* center the position */
+  background-size: auto;
+  background: #b3b3ff;
+  border-radius: 10px; /* Add this line */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+}
+.tab {
+  background-color: #4fd1c5; /* Teal color */
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  transition-duration: 0.4s;
+  cursor: pointer;
+}
+
+.tab:hover {
+  background-color: #38b2ac;
+}
+
+.content {
+  display: none;
+  padding: 20px;
+  border-top: none;
+}
+
+/* Add styles to the active tab */
+.active {
+  background-color: #319795 !important;
+  color: white;
+}
+
+/* Hide the content on load */
+.hidden {
+  display: none;
+}
+#videoContainer {
+  position: relative;
+  width: 100%;
+  height: 0;
+  padding-bottom: 56.25%;
+  background-color: #ca3b3b;
+}
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+
+
+/* Styles for the Set Hyperparameter section */
+#modelRetrain {
+  background-color: #c2ede5;
+  padding: 20px;
+  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+  width:1000px; /* Set the width as per your preference */
+  height: 9000px; /* Set the height as per your preference */
+  margin-left: auto;
+  margin-right: auto;
+
+}
+
+#modelRetrain h2 {
+  background-color: #00C1D4; /* Teal color */
+  color: white;
+  padding: 10px;
+  text-align: center;
+  border-radius: 10px;
+}
+
+#modelRetrain label {
+  display: block;
+  background-color: black;
+  color: white;
+  text-align: center;
+  padding: 5px;
+  margin-bottom: 10px;
+  margin-right: 10px;
+  margin-left: 20px;
+  ;
+  border-radius: 5px;
+}
+
+#modelRetrain input[type='number'],
+#modelRetrain select {
+  width: calc(100% - 10px);
+  padding: 5px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+}
+
+#modelRetrain input[type='number']:focus,
+#modelRetrain select:focus {
+  border-color: #00C1D4;
+}
+
+#modelRetrain button {
+  width: 100%;
+  background-color: #00C1D4; /* Teal color */
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+#modelRetrain button:hover {
+  background-color: #009DAE;
+}
+
+#modelRetrain .error {
+  color: red;
+  font-size: 0.75rem;
+  height: 1rem;
+  display: block;
+}
+.fire-edge-button {
+  padding: 10px 40px;
+  background-color: green;
+  color: white;
+  border: 2px solid #906232;
+  border-radius: 5px;
+  font-size: 30px;
+  text-align: center;
+  display: inline-block;
+  position: relative;
+  text-decoration: none;
+  box-shadow: 0 0 12px rgba(3, 3, 3, 0.5),
+  0 0 20px orange inset;
+  cursor: pointer;
+  user-select: none;
+  margin: 30px;
+}
+
+.fire-edge-button:hover {
+  box-shadow: 0 0 15px #584141,
+  0 0 25px orange inset;
+}
+
+.fire-edge-button:active {
+  box-shadow: 0 0 10px #352c2c,
+  0 0 15px orange inset;
+}
+
+.md\:w-2\/3 {
+    margin: auto;
+}
+#startButton {
+    position: relative;
+    min-width: 200px;
+    background: #780cd8;
+    border: 2px solid rgba(3, 3, 3, 0.5);
+    transform: translate3d(0px, 0%, 0px);
+    font-size: 1rem;
+    font-weight: bold;
+    text-align: center;
+    text-decoration: none;
+    transition-delay: 0.6s;
+    overflow: hidden;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: center;
+    margin-right: 10px;
+}
+
+#stopProcessingButton {
+    position: relative;
+    min-width: 200px;
+    background: #16ed43;
+    border: 2px solid #3AD2D0;
+    transform: translate3d(0px, 0%, 0px);
+    font-size: 1rem;
+    font-weight: bold;
+    text-align: center;
+    text-decoration: none;
+    transition-delay: 0.6s;
+    overflow: hidden;
+    padding: 10px 20px;
+    /* Other styles */
+    display: flex;
+    justify-content: center;
+    margin-right: 10px;}
+
+#stopCameraButton {
+    position: static;
+    min-width: 200px;
+    background: #d02424;
+    border: 2px solid #3AD2D0;
+    transform: translate3d(0px, 0%, 0px);
+    font-size: 1rem;
+    font-weight: bold;
+    text-align: center;
+    text-decoration: none;
+    transition-delay: 0.6s;
+    overflow: hidden;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: center;
+
+}
+/* Apply Flexbox to the body to center the video container */
+body {
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    min-height: 100vh; /* Full viewport height */
+    flex-direction: column; /* Stack children vertically */
+    margin: 0; /* Remove default margin */
+}
+
+.video-container {
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    flex-direction: column; /* Stack video and image vertically */
+}
+
+/* Style for buttons container for consistency */
+.buttons-container {
+    display: flex;
+    justify-content: center; /* Centers the buttons horizontally */
+    gap: 10px; /* Creates a gap between the buttons */
+    margin-top: 20px; /* Adds space between video container and buttons */
+}
+
+/* Example button styles, adjust as needed */
+#startButton, #stopProcessingButton, #stopCameraButton {
+    min-width: 200px;
+    padding: 10px 20px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    text-align: center;
+    cursor: pointer;
+}
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: #f4f4f4;
+}
+
+#app {
+    max-width: 1200px; /* Adjust this value as needed */
+    margin: 10px auto;
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 1000px;
+
+}
+.header {
+    background-color: rgba(3, 3, 3, 0.5);
+    color: rgba(3, 3, 3, 0.5);
+    padding: 20px 30px;
+    text-align: center;
+    text-size-adjust: auto;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    font-size: 30px;
+    color: #ffffff;
+
+}
+
+.model-list {
+    border: 1px solid #2d2d28;
+    margin: 20px;
+    padding: 10px;
+    height: 300px; /* Adjust as needed */
+    overflow-y: auto;
+}
+
+.model-item {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.model-item:last-child {
+    border-bottom: none;
+}
+
+button {
+    background-color: #007bff;
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    margin: 10px;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+.title {
+    text-align: center;
+    font-size: 2em; /* Adjust as needed */
+}
+
+.video-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+#video, #processedVideo {
+    margin: 15px 15px; /* Adjust as needed */
+}
+
