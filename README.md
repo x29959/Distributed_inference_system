@@ -66,7 +66,8 @@ source /home/t1204/Desktop/new_combine_system_local/.venv/bin/activate
 **前提條件：**
 - 安裝相同環境
 - 安裝 Tailscale
-- 檢查雲端 IP 位址（如需更換裝置，須更新遠端伺服器的 IP）
+- 檢查雲端位址（如需更換裝置，須更新遠端伺服器的 IP）
+ IP![Screenshot_20241229_235641](https://github.com/user-attachments/assets/99629b30-faf8-4412-8165-6395312858b5)
 
 **步驟：**
 - 執行 `cloud.py`
