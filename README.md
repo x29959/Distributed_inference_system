@@ -77,5 +77,18 @@ source /home/t1204/Desktop/new_combine_system_local/.venv/bin/activate
    - 無人機
    - 樹莓派槍支機構
 2. 開啟 Temi 機器人上的 MQTT client app
-3. 開啟雲端伺服器
-4. 開啟邊緣伺服器（遠端或本地）
+### Part 1. TEMI MQTT client app
+![Screenshot_20241229_233055](https://github.com/user-attachments/assets/dbe6a693-29f1-4f14-8dcc-9bb4ad1ee752)
+
+
+
+### choose the server you want to connect
+
+### Part 2. connect to the server
+
+![Screenshot_20241229_233303](https://github.com/user-attachments/assets/aefd8257-2da9-4263-9d9f-e15c2a5534da)
+
+
+
+4. 開啟雲端伺服器
+5. 開啟邊緣伺服器（遠端或本地）
