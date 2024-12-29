@@ -117,11 +117,4 @@
 
 
 
-# TEMI MQTT client app
 
-### Part 1. TEMI MQTT client app
-
-
-### choose the server you want to connect
-
-### Part 2. connect to the server
