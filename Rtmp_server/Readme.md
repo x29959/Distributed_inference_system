@@ -1,7 +1,7 @@
 # 分散式及自適應學習之串流伺服器架構
 # Distributed and Adaptive Learning Streaming Server Architecture
 
-
+# On-device 裝置端
 
 ### Part 1. Android 手機串流伺服器 / Android Phone Streaming Server
 
