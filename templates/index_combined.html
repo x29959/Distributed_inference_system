@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>YOLO and Gesture Recognition System</title>
+    <title>YOLO and Gesture Recognition System (Remote version)</title>
     <!-- Include Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
     <!-- Custom Fonts and Styles -->
@@ -123,7 +123,7 @@
     </style>
 </head>
 <body>
-    <h1>YOLO and Gesture Recognition System</h1>
+    <h1>YOLO and Gesture Recognition System (Remote edge server)</h1>
     <div id="message"></div>
     <div class="container">
 
@@ -357,7 +357,7 @@
 
             // Construct the appropriate URL based on mode
             var url = 'http://100.90.232.15:5000/get_user_models/' + encodeURIComponent(username) + '/' + encodeURIComponent(neuralNetwork);
-
+            //var url = 'http://100.68.188.72:6000/get_user_models/' + encodeURIComponent(username) + '/' + encodeURIComponent(neuralNetwork);
             fetch(url)
                 .then(response => response.json())
                 .then(data => {

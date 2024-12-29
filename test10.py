@@ -40,7 +40,8 @@ socketio = SocketIO(app, async_mode='threading')
 
 # TEMI robot configuration
 TEMI_SERIAL = "00120495065"
-MQTT_HOST = 'stevetw.serv00.net'
+# MQTT_HOST = 'stevetw.serv00.net'
+MQTT_HOST = '128.204.223.100'
 MQTT_PORT = 1883
 MQTT_USERNAME = 'steve'
 MQTT_PASSWORD = '062028633'
@@ -49,6 +50,8 @@ MQTT_PASSWORD = '062028633'
 TARGET_DEVICE_IP = '100.90.232.15'  # 替換為目標裝置的 IP
 TARGET_DEVICE_PORT = '5000'         # 替換為目標裝置的 Port
 
+# TARGET_DEVICE_IP = '100.68.188.72'  # 替換為目標裝置的 IP
+# TARGET_DEVICE_PORT = '6000'         # 替換為目標裝置的 Port
 
 # Connect to TEMI robot
 try:
@@ -272,10 +275,10 @@ current_video_time = 0.0
 current_video_time_lock = threading.Lock()
 # 在全局范围内初始化 start_time 和 current_video_time
 start_time = None
-YOLO_CAMERA_SOURCE = 'rtmp://100.70.26.103:1935/live/stream'
-# YOLO_CAMERA_SOURCE =0
-GESTURE_CAMERA_SOURCE = 'rtmp://100.100.87.86:1935/live/stream'  # 可以是文件路徑或攝影機ID
-# GESTURE_CAMERA_SOURCE ='rtmp://stevetw.serv00.net:1940/live/stream'
+# YOLO_CAMERA_SOURCE = 'rtmp://100.70.26.103:1935/live/stream'
+YOLO_CAMERA_SOURCE =0
+# GESTURE_CAMERA_SOURCE = 'rtmp://100.100.87.86:1935/live/stream'  # 可以是文件路徑或攝影機ID
+GESTURE_CAMERA_SOURCE ='rtmp://100.70.26.103:1935/live/stream'
 # Define a helper function to emit messages in a non-blocking way
 
 @app.route("/test1")
@@ -1529,8 +1532,8 @@ def frame_reader_gesture():
 
     hands = mp_hands.Hands(
         max_num_hands=1,
-        min_detection_confidence=0.8,
-        min_tracking_confidence=0.8,
+        min_detection_confidence=0.4,
+        min_tracking_confidence=0.4,
         model_complexity=1
     )
 

@@ -239,6 +239,9 @@
         <div class="follow-container">
             <button class="control-button" id="follow-button">Follow</button>
         </div>
+        <div>
+            <button class="control-button" id="stop-button">Stop</button>
+        </div>
     </div>
 
     <script>
@@ -253,6 +256,7 @@
 
             const rotateButton = document.getElementById('rotate-button');
             const customAngleInput = document.getElementById('custom-angle');
+            const stopButton = document.getElementById('stop-button');
             const  DEVICE_A_URL = 'http://100.90.232.15:5000';
 
             rotateButton.onclick = function() {
@@ -284,6 +288,10 @@
 
             followButton.onclick = function() {
                 sendControlCommand('Follow');
+            };
+
+            stopButton.onclick = function() {
+                sendControlCommand('Stop');
             };
 
             function sendControlCommand(command) {
