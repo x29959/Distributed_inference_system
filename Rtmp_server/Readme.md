@@ -114,3 +114,14 @@
   2. 服務運行狀態
   3. 網路連接狀態
 - 如果遇到效能問題，可以調整串流參數
+
+
+
+# TEMI MQTT client app
+
+### Part 1. TEMI MQTT client app
+
+
+### choose the server you want to connect
+
+### Part 2. connect to the server
