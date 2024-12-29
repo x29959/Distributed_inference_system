@@ -32,9 +32,18 @@
    - 安裝串流所需套件：
      ```bash
      pkg install nodejs-lts
-     npm init -y
      npm install express node-media-server
+     npm init -y
      ```
+3. DJI fly app [Official android or ios Link](https://www.dji.com/tw/downloads/djiapp/dji-fly)
+   - 開啟 DJI fly app
+
+   - 進入設定
+
+   - 選擇「串流」
+
+   - 輸入伺服器位址: ip:port
+   
 
 ### Part 2. 樹莓派 5 串流伺服器 / Raspberry Pi 5 Streaming Server
 
