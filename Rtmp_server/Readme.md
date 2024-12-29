@@ -35,15 +35,21 @@
      npm install express node-media-server
      npm init -y
      ```
-3. DJI fly app [Official android or ios Link](https://www.dji.com/tw/downloads/djiapp/dji-fly)
+3. 安裝 DJI fly app [Official android or ios Link](https://www.dji.com/tw/downloads/djiapp/dji-fly)
    - 開啟 DJI fly app
+![Screenshot_20241229_214306](https://github.com/user-attachments/assets/6f7ada30-bb24-469c-837a-cc276f4778a0)
 
    - 進入設定
+![Screenshot_20241229_214120](https://github.com/user-attachments/assets/e4f97a4a-ae5e-4635-8169-7c1637a89076)
 
    - 選擇「串流」
+![Screenshot_20241229_214129](https://github.com/user-attachments/assets/e47de688-5a25-4409-98a5-bf7f7007022a)
 
-   - 輸入伺服器位址: ip:port
-   
+   - 輸入伺服器位址: ip:port  
+![Screenshot_20241229_214143](https://github.com/user-attachments/assets/96c219cc-5b59-40ab-85fd-b2925d201275)
+
+   - 成功串流
+![Screenshot_20241229_214159](https://github.com/user-attachments/assets/464f4f4e-2a67-4645-9782-59496d420089)
 
 ### Part 2. 樹莓派 5 串流伺服器 / Raspberry Pi 5 Streaming Server
 
