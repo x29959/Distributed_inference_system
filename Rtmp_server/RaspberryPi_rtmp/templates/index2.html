@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>串流與錄影控制</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"> <!-- 新增這行讓網頁適應行動裝置 -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            color: #333333;
+        }
+        .button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 20px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            width: 100%;
+            cursor: pointer;
+        }
+        .button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .status {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #555555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>控制串流與錄影</h1>
+        <form method="post">
+            {% if streaming %}
+                <button type="submit" name="action" value="stop" class="button">停止串流與錄影</button>
+            {% else %}
+                <button type="submit" name="action" value="start" class="button">開始串流與錄影</button>
+            {% endif %}
+        </form>
+        <div class="status">
+            {% if streaming %}
+                <p>串流與錄影正在進行中...</p>
+            {% else %}
+                <p>串流與錄影已停止。</p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>串流與錄影控制</title>
+</head>
+<body>
+    <h1>控制串流與錄影</h1>
+    <form method="post">
+        {% if streaming %}
+            <button type="submit" name="action" value="stop_streaming">停止串流</button>
+        {% else %}
+            <button type="submit" name="action" value="start_streaming">開始串流</button>
+        {% endif %}
+        <br><br>
+        {% if recording %}
+            <button type="submit" name="action" value="stop_recording">停止錄影</button>
+        {% else %}
+            <button type="submit" name="action" value="start_recording">開始錄影</button>
+        {% endif %}
+    </form>
+</body>
+</html>
