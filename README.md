@@ -49,18 +49,18 @@ conda env create -f environment.yml
 
 ## 系統組件啟動說明
 
-### 1. 遠端邊緣伺服器 (RTX3060)
+### 1. 開啟遠端邊緣伺服器 (RTX3060)
 1. 執行 `inference.py`
 2. 根據 IP 位址及 port 開啟網站
 
-### 2. 本地端邊緣伺服器 (Raspberry Pi 5)
+### 2. 開啟本地端邊緣伺服器 (Raspberry Pi 5)
 ```bash
 cd Desktop/new_combine_system_local/
 source /home/t1204/Desktop/new_combine_system_local/.venv/bin/activate
 /home/t1204/Desktop/new_combine_system_local/.venv/bin/python /home/t1204/Desktop/new_combine_system_local/inference.py
 ```
 
-### 3. 雲端伺服器
+### 3. 開啟雲端伺服器
 **說明：** 在另一個裝置啟動雲端伺服器
 
 **前提條件：**
@@ -74,7 +74,7 @@ source /home/t1204/Desktop/new_combine_system_local/.venv/bin/activate
 [Readme_file ](https://github.com/x29959/Distributed_inference_system/blob/6b0f317e25601cfd3314cf67b8fc025cb6186dcc/cloud_retrain/Readme.md)
 ## 系統整體啟動順序
 
-1. 開啟兩個串流伺服器
+1. 開啟兩個串流伺服器 [Readme_file] (https://github.com/x29959/Distributed_inference_system/blob/e650a0e11ccb1319da80b82ba257a130c679c96d/Rtmp_server/Readme.md)
    - 無人機
    - 樹莓派槍支機構
 2. 開啟 Temi 機器人上的 MQTT client app
