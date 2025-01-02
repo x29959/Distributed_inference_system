@@ -1,0 +1,177 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+     <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>T1-204A LAB Gesture Recognition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+
+<body class="bg-gray-100">
+    <div class="text-center mb-6">
+    <a href="/" class="inline-block">
+        <img src="{{ url_for('static', filename='圖片1.png') }}" alt="logo" class="logo" style="width: 400px;">
+    </a>
+</div>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="w-full max-w-lg bg-white shadow-md rounded-lg p-6">
+
+        <h2 class="text-2xl font-bold mb-4 text-center">Model Management</h2>
+        <form id="modelForm" method="post" action="/set_model">
+            <div class="mb-4">
+                <label for="modelSelect" class="block text-lg font-medium text-gray-700 mb-2">Select Model:</label>
+                <select id="modelSelect" name="model" class="block w-full bg-gray-50 border border-gray-300 rounded-md py-2 px-3 shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    <option value="Transformer" {% if selected_model == 'Transformer' %}selected{% endif %}>Transformer</option>
+                    <option value="CNN_LSTM" {% if selected_model == 'CNN_LSTM' %}selected{% endif %}>CNN_LSTM</option>
+                    <option value="CBiLSTM" {% if selected_model == 'CBiLSTM' %}selected{% endif %}>CBiLSTM</option>
+                    <option value="GRUClassifier" {% if selected_model == 'GRUClassifier' %}selected{% endif %}>GRUClassifier</option>
+                    <option value="CRNN" {% if selected_model == 'CRNN' %}selected{% endif %}>CRNN</option>
+                </select>
+            </div>
+            <div class="flex justify-center">
+                <button type="submit" class="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Update Model</button>
+            </div>
+        </form>
+    </div>
+</body>
+
+<!-- Content for Inference Model Page -->
+<div id="app">
+    <div class="header">Model management</div>
+    <div id="modelList" class="model-list">
+    </div>
+</div>
+
+<h1 class="title">Original Video Screen</h1>
+<div class="video-container">
+    <video id="video" autoplay="true"></video>
+    <h1>Processed Video</h1>
+    <img id="processedVideo" src="" alt="Processed video will appear here" />
+
+</div>
+
+<div class="buttons-container">
+    <button id="startButton" onclick="startProcessing()">Start Camera and Processing</button>
+    <button id="stopProcessingButton" onclick="stopProcessing()">Stop Processing</button>
+    <button id="stopCameraButton" onclick="stopProcessing()">Stop Camera</button>
+</div>
+
+<script>
+    var socket = io('http://localhost:5000');
+    var video = document.getElementById('video');
+    var processedVideo = document.getElementById('processedVideo');
+    var isCapturing = false;
+    var mediaStream = null; // Global variable to hold the stream
+
+    function startCamera() {
+        navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+            .then(stream => {
+                video.srcObject = stream;
+                mediaStream = stream; // Assign the stream to the global variable
+            })
+            .catch(err => {
+                console.error("Error accessing the camera", err);
+            });
+    }
+
+    function captureAndSend() {
+        if (!isCapturing) {
+            isCapturing = true;
+            setInterval(() => {
+                var canvas = document.createElement('canvas');
+                canvas.width = 640;
+                canvas.height = 480;
+                var context = canvas.getContext('2d');
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                var imageData = canvas.toDataURL('image/jpeg');
+                socket.emit('image', imageData);
+            }, 200);
+        }
+    }
+
+    function startProcessing() {
+        startCamera();
+        fetch('http://localhost:5000/start')
+            .then(() => {
+                captureAndSend();
+            });
+    }
+
+    function stopProcessing() {
+        fetch('http://localhost:5000/stop')
+            .then(() => {
+                if (video.srcObject) {
+                    video.srcObject.getTracks().forEach(track => track.stop()); // Stop each track on the stream
+                }
+                video.srcObject = null; // Remove the stream from the video element
+            });
+
+        processedVideo.src = ""; // Clear the processed video immediately after the button is clicked
+    }
+    function stopCamera() {
+        if (video.srcObject) {
+            video.srcObject.getTracks().forEach(track => track.stop()); // Stop each track on the stream
+            video.srcObject = null; // Remove the stream from the video element
+        }
+    }
+
+    socket.on('response', function(data) {
+        processedVideo.src = 'data:image/jpeg;base64,' + data;
+    });
+
+    // function stopRecording() {
+    //     socket.emit('stop_recording');
+    // }
+    let models = [];
+
+    function fetchModels() {
+        fetch('http://localhost:5000/models')
+            .then(response => response.json())
+            .then(data => {
+                models = data.models;
+                displayModels(models);
+            });
+    }
+
+    function displayModels(modelsToShow) {
+        const modelList = document.getElementById('modelList');
+        modelList.innerHTML = '';
+        modelsToShow.forEach(model => {
+            modelList.innerHTML += `<div class="model-item">${model} <button onclick="deleteModel('${model}')">Delete</button></div>`;
+        });
+    }
+
+    function deleteModel(modelName) {
+        fetch('http://localhost:5000/delete_model', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ model: modelName })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    fetchModels(); // Refresh the model list after successful deletion
+                } else {
+                    alert(data.message); // Optionally alert the user if something goes wrong
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while deleting the model.'); // Alert the user about the error
+            });
+    }
+    document.addEventListener('DOMContentLoaded', fetchModels);
+
+
+</script>
+
+</body>
+</html>

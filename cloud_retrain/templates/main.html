@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en, zh-Hant">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>T1-204A LAB Gesture Recognition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    />
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    <h1 style="font-size: 2rem; text-align: center;">手勢辨識再學習平台 Gesture Recognition Retrain Platform</h1>
+</head>
+<body>
+<div class="max-w-6xl mx-auto px-5 py-12">
+    <div class="text-center mb-8">
+        <img src="{{ url_for('static', filename='圖片1.png') }}" alt="logo" class="logo" style="width: 3000px;">
+    </div>
+
+    <div class="flex flex-col items-center space-y-4 p-4">
+        <button onclick="window.location.href='/test3'" class="w-full bg-green-500 hover:bg-red-400 text-white font-bold py-4 px-4 rounded shadow focus:outline-none focus:shadow-outline" style="font-size: 2rem;">模型推理及管理 Inference Model and Management </button>
+        <button onclick="window.location.href='/test1'" class="w-full bg-green-500 hover:bg-red-400 text-white font-bold py-4 px-4 rounded shadow focus:outline-none focus:shadow-outline" style="font-size: 2rem;">手勢數據檢查 Gesture Data Check</button>
+        <button onclick="window.location.href='/test2'" class="w-full bg-green-500 hover:bg-red-400 text-white font-bold py-4 px-4 rounded shadow focus:outline-none focus:shadow-outline" style="font-size: 2rem;">模型再訓練 Model Retrain</button>
+
+    </div>
+</div>
+</body>
+</html>

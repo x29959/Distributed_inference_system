@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>T1-204A LAB Gesture Recognition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    />
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="max-w-6xl mx-auto px-4 py-6">
+        <div class="text-center mb-6">
+            <a href="/" class="inline-block">
+                <img src="{{ url_for('static', filename='圖片1.png') }}" alt="logo" class="logo" style="width: 400px;">
+            </a>
+        </div>
+        <video id="videoPlayer" width="750" controls class="mx-auto mb-6">
+            <source src="{{ url_for('static', filename='output.webm') }}" type="video/webm" />
+            Your browser does not support the video tag.
+        </video>
+        <div class="container">
+            <div class="label-selection my-4"></div>
+            <div class="time-navigation flex items-center justify-center gap-2 my-4" id="timeNavigation">
+                <button id="prevButton" class="w-24 h-24 bg-blue-500 text-white rounded">
+                    <i class="fas fa-arrow-left"></i> Last Time
+                </button>
+                <div id="currentTime" class="w-32 h-12 flex items-center justify-center bg-gray-200 rounded">
+                    Loading...
+                </div>
+                <button id="nextButton" class="w-24 h-24 bg-blue-500 text-white rounded">
+                    <i class="fas fa-arrow-right"></i> Next Time
+                </button>
+            </div>
+            
+            <!-- 手势按钮容器 -->
+            <div class="flex flex-wrap justify-center space-x-2 my-4" id="gesturesContainer">
+                <!-- 按钮将由 JavaScript 动态生成 -->
+            </div>
+            
+            <!-- 手势选项与用户名输入界面 -->
+            <div class="flex justify-center my-4 space-x-4">
+                <div>
+                    <label class="mr-2">手势类型：</label>
+                    <select id="gestureType" class="border p-2 rounded">
+                        <option value="default">Default</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                </div>
+                <div id="usernameContainer" class="hidden">
+                    <label class="mr-2">使用者：</label>
+                    <select id="usernameSelect" class="border p-2 rounded">
+                        <!-- 使用者選項將由 JavaScript 動態生成 -->
+                    </select>
+                </div>
+            </div>
+            
+            <!-- 新增手势界面 -->
+            <div class="flex justify-center my-4">
+                <input type="text" id="newGestureName" placeholder="新增手势名称" class="border p-2 rounded-l">
+                <button id="addGestureButton" class="bg-green-500 hover:bg-green-600 text-white p-2 rounded-r">
+                    新增手势
+                </button>
+            </div>
+
+            <div class="flex justify-center space-x-4 my-4">
+                <button id="saveToDatabase" class="w-24 h-24 bg-yellow-300 hover:bg-yellow-400 text-purple-700 font-bold py-2 px-4 rounded">
+                    Save to database
+                </button>
+                <button id="refreshButton" class="w-24 h-24 bg-gray-300 hover:bg-gray-400 text-purple-700 font-bold py-2 px-4 rounded">
+                    Refresh
+                </button>
+            </div>
+            
+            <button id="deleteData" class="w-24 h-24 bg-red-300 hover:bg-red-400 text-purple-700 font-bold py-2 px-4 rounded mx-auto block">
+                Delete Data
+            </button>
+            <div id="message" class="text-center my-2 hidden text-green-600 font-bold">
+                Data deleted successfully!
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const videoPlayer = document.getElementById('videoPlayer');
+            const currentTimeDisplay = document.getElementById('currentTime');
+            const prevButton = document.getElementById('prevButton');
+            const nextButton = document.getElementById('nextButton');
+            const gesturesContainer = document.getElementById('gesturesContainer');
+            const deleteDataButton = document.getElementById('deleteData');
+            const messageDiv = document.getElementById('message');
+            const refreshButton = document.getElementById('refreshButton');
+            const saveToDatabaseButton = document.getElementById('saveToDatabase');
+            const addGestureButton = document.getElementById('addGestureButton');
+            const newGestureNameInput = document.getElementById('newGestureName');
+            const gestureTypeSelect = document.getElementById('gestureType');
+            const usernameContainer = document.getElementById('usernameContainer');
+            const usernameSelect = document.getElementById('usernameSelect');
+
+            let uniqueLastValues = [];
+            let currentIndex = 0;
+            let labelAssignments = [];
+            let currentTimeIndex = 0;
+
+            // 定义初始手势列表，包括 'Unknown' 手势
+            const defaultGestures = [
+                { id: 'ForwardButton', label: 0, name: 'Forward' },
+                { id: 'BackwardButton', label: 1, name: 'Backward' },
+                { id: 'StopButton', label: 2, name: 'Stop' },
+                { id: 'FireButton', label: 3, name: 'Fire' },
+                { id: 'FollowButton', label: 4, name: 'Follow' },
+                { id: 'zero_oclock_direction', label: 5, name: '0 oclock direction' },
+                { id: 'three_oclock_direction', label: 6, name: '3 oclock direction' },
+                { id: 'six_oclock_direction', label: 7, name: '6 oclock direction' },
+                { id: 'nine_oclock_direction', label: 8, name: '9 oclock direction' },
+                { id: 'UnknownButton', label: 99, name: 'Unknown' } // 新增 'Unknown' 手势
+            ];
+
+            let customGestures = [];
+            let gestures = [...defaultGestures]; // 初始化为默认手势
+
+            // 动态生成手势按钮
+            function renderGestures() {
+                gesturesContainer.innerHTML = '';
+                gestures.forEach(gesture => {
+                    const button = document.createElement('button');
+                    button.id = gesture.id;
+                    button.className = 'gesture-button w-24 h-24 bg-yellow-300 hover:bg-yellow-400 text-purple-700 font-bold py-2 px-4 rounded m-1';
+                    button.textContent = `${gesture.label}: '${gesture.name}'`;
+                    button.dataset.label = gesture.label;
+                    gesturesContainer.appendChild(button);
+                });
+            }
+
+            // 初始化手势按钮
+            renderGestures();
+
+            // 更新手势颜色
+            function updateButtonColors(labelValue) {
+                gestures.forEach(gesture => {
+                    const button = document.getElementById(gesture.id);
+                    if (!button) return;
+                    if (gesture.label === labelValue) {
+                        button.style.backgroundColor = 'green';
+                        button.style.color = 'white';
+                    } else {
+                        button.style.backgroundColor = 'yellow';
+                        button.style.color = 'purple';
+                    }
+                });
+            }
+
+            // 根据当前标签更新按钮颜色
+            function updateButtonColorsBasedOnLabel() {
+                const currentLabel = labelAssignments[currentIndex];
+                if (currentLabel !== undefined && !isNaN(currentLabel)) {
+                    updateButtonColors(currentLabel);
+                }
+            }
+
+            // 隐藏成功信息
+            function hideMessage() {
+                messageDiv.style.display = 'none';
+            }
+
+            // 获取 CSV 数据
+            function fetchcsv() {
+                fetch('./static/test.csv')
+                    .then(response => response.text())
+                    .then(data => {
+                        Papa.parse(data, {
+                            header: true, // 设置为 true，因为 CSV 包含标题
+                            skipEmptyLines: true,
+                            complete: function (results) {
+                                const dataRows = results.data;
+
+                                // 提取时间和标签
+                                const lastValues = dataRows.map(line => parseFloat(line['time']));
+                                const labelValues = dataRows.map(line => parseInt(line['label'], 10));
+
+                                // 提取唯一的时间点，并排序
+                                uniqueLastValues = Array.from(new Set(lastValues)).sort((a, b) => a - b);
+
+                                // 映射时间点到标签
+                                labelAssignments = uniqueLastValues.map(timeVal => {
+                                    // 找到所有与该时间点匹配的行
+                                    const rows = dataRows.filter(row => parseFloat(row['time']) === timeVal);
+                                    // 获取最后一个匹配行的标签
+                                    const row = rows[rows.length - 1];
+                                    return row ? parseInt(row['label'], 10) : 0;
+                                });
+
+                                // 获取当前时间的索引
+                                currentIndex = getClosestIndex(uniqueLastValues, parseFloat(videoPlayer.currentTime.toFixed(2)));
+                                if (currentIndex === -1) {
+                                    currentIndex = 0;
+                                }
+
+                                if (labelAssignments[currentIndex] === undefined || isNaN(labelAssignments[currentIndex])) {
+                                    labelAssignments[currentIndex] = 0; // 默认标签
+                                }
+                                updateButtonColorsBasedOnLabel();
+                            },
+                        });
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+
+            // 找到最接近的时间索引
+            function getClosestIndex(arr, val) {
+                let closest = arr.reduce((prev, curr) => Math.abs(curr - val) < Math.abs(prev - val) ? curr : prev, arr[0]);
+                return arr.indexOf(closest);
+            }
+
+            // 初始化 CSV
+            fetchcsv();
+
+            // 视频时间更新时更新显示和按钮颜色
+            videoPlayer.addEventListener('timeupdate', function () {
+                currentTimeDisplay.textContent = videoPlayer.currentTime.toFixed(2) + ' sec';
+                currentIndex = getClosestIndex(uniqueLastValues, parseFloat(videoPlayer.currentTime.toFixed(2)));
+                if (currentIndex === -1) {
+                    // Time not found, set to 0 or handle accordingly
+                    currentIndex = 0;
+                }
+                if (labelAssignments[currentIndex] === undefined || isNaN(labelAssignments[currentIndex])) {
+                    labelAssignments[currentIndex] = 0; // 默认标签
+                }
+                updateButtonColorsBasedOnLabel();
+            });
+
+            // 前一个时间点
+            prevButton.addEventListener('click', function () {
+                if (currentIndex > 0) {
+                    currentIndex--;
+                    videoPlayer.currentTime = uniqueLastValues[currentIndex];
+                    hideMessage();
+                }
+            });
+
+            // 下一个时间点
+            nextButton.addEventListener('click', function () {
+                if (currentIndex < uniqueLastValues.length - 1) {
+                    currentIndex++;
+                    videoPlayer.currentTime = uniqueLastValues[currentIndex];
+                    hideMessage();
+                }
+            });
+
+            // 刷新 CSV
+            refreshButton.addEventListener('click', function () {
+                fetchcsv();
+            });
+
+            // 使用事件委派处理手势按钮点击
+            gesturesContainer.addEventListener('click', function (e) {
+                if (e.target && e.target.matches('button.gesture-button')) {
+                    const label = parseInt(e.target.dataset.label, 10);
+                    if (labelAssignments[currentIndex] !== label) {
+                        updateLabel(label);
+                        sendLabelToServer(label);
+                    }
+                }
+            });
+
+            // 更新标签并改变按钮颜色
+            function updateLabel(labelValue) {
+                labelAssignments[currentIndex] = labelValue;
+                updateButtonColors(labelValue);
+            }
+
+            // 将标签发送到服务器
+            function sendLabelToServer(labelValue) {
+                let username = 'default'; // 默認為 'default'
+                const gestureType = gestureTypeSelect.value;
+                if (gestureType === 'custom') {
+                    username = usernameSelect.value;
+                }
+
+                const dataToSend = {
+                    time: uniqueLastValues[currentIndex] + ' sec', // 使用准确的时间点
+                    label: labelValue
+                };
+
+                fetch('/update_csv', { // 使用相对路径以避免跨域问题
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(dataToSend),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        console.log(data.message);
+                        // 重新获取 CSV 数据以反映更新
+                        fetchcsv();
+                    } else if (data.error) {
+                        console.error('Error:', data.error);
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while updating the label.');
+                });
+            }
+
+            // 删除数据
+            deleteDataButton.addEventListener('click', function () {
+                const gestureType = gestureTypeSelect.value;
+                let username = 'default'; // 默認為 'default'
+                if (gestureType === 'custom') {
+                    username = usernameSelect.value;
+                }
+
+                const dataToSend = {
+                    time: uniqueLastValues[currentIndex] + ' sec' // 使用准确的时间点
+                };
+                fetch('/delete_csv', { // 使用相对路径以避免跨域问题
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(dataToSend),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        console.log(data.message);
+                        messageDiv.style.display = 'block';
+                    } else if (data.error) {
+                        console.error('Error:', data.error);
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            });
+
+            // 手势类型选择变更事件
+            gestureTypeSelect.addEventListener('change', function () {
+                if (gestureTypeSelect.value === 'custom') {
+                    usernameContainer.classList.remove('hidden');
+                    loadUsers();
+                } else {
+                    usernameContainer.classList.add('hidden');
+                    clearGestures();
+                    gestures = [...defaultGestures];
+                    renderGestures();
+                }
+            });
+
+            // 加载使用者列表
+            function loadUsers() {
+                fetch('/get_users', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.users) {
+                        populateUsernameDropdown(data.users);
+                    } else if (data.error) {
+                        console.error('Error:', data.error);
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while fetching users.');
+                });
+            }
+
+            // 填充使用者下拉選單
+            function populateUsernameDropdown(users) {
+                usernameSelect.innerHTML = ''; // 清空現有選項
+                if (users.length === 0) {
+                    // 如果沒有使用者，提供新增使用者的選項
+                    const option = document.createElement('option');
+                    option.value = '';
+                    option.textContent = 'No users available. Please add a user.';
+                    usernameSelect.appendChild(option);
+                } else {
+                    // 添加現有使用者
+                    users.forEach(user => {
+                        const option = document.createElement('option');
+                        option.value = user;
+                        option.textContent = user;
+                        usernameSelect.appendChild(option);
+                    });
+                }
+
+                // 添加新增使用者的選項
+                const addOption = document.createElement('option');
+                addOption.value = 'add_new';
+                addOption.textContent = 'Add New User';
+                usernameSelect.appendChild(addOption);
+            }
+
+            // 監聽使用者選擇下拉選單變更事件
+            usernameSelect.addEventListener('change', function () {
+                if (usernameSelect.value === 'add_new') {
+                    const newUsername = prompt('Enter new username:').trim();
+                    if (newUsername) {
+                        addNewUser(newUsername);
+                    } else {
+                        alert('Username cannot be empty.');
+                        loadUsers(); // 重新加載使用者列表
+                    }
+                } else {
+                    loadGestures(usernameSelect.value);
+                }
+            });
+
+            // 添加新使用者
+            function addNewUser(username) {
+                fetch('/add_user', { // 修改為 '/add_user'
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 'username': username }), // 傳遞 'username'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        alert(`User '${username}' added successfully.`);
+                        loadUsers();
+                    } else if (data.error) {
+                        alert('Error: ' + data.error);
+                        loadUsers(); // 重新加載使用者列表
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while adding the user.');
+                    loadUsers(); // 重新加載使用者列表
+                });
+            }
+
+            // 加载指定使用者的手势
+            function loadGestures(username) {
+                if (!username) return;
+                fetch(`/get_gestures/${encodeURIComponent(username)}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.gestures) {
+                        populateGestures(data.gestures);
+                    } else if (data.error) {
+                        console.error('Error:', data.error);
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while fetching gestures.');
+                });
+            }
+
+            // 填充手势按钮
+            function populateGestures(userGestures) {
+                gestures = [...defaultGestures]; // 先恢復默認手勢
+                userGestures.forEach(gesture => {
+                    const newGesture = {
+                        id: `customGesture_${gesture.index}`,
+                        label: gesture.index,
+                        name: gesture.name
+                    };
+                    gestures.splice(gestures.findIndex(g => g.label === 99), 0, newGesture); // 插入到 'Unknown' 前
+                });
+                renderGestures();
+            }
+
+            // 清空手势列表
+            function clearGestures() {
+                gestures = [...defaultGestures];
+                renderGestures();
+            }
+
+            // 新增手势
+            addGestureButton.addEventListener('click', function () {
+                const newGestureName = newGestureNameInput.value.trim();
+                if (newGestureName === '') {
+                    alert('请输入手势名称');
+                    return;
+                }
+
+                const gestureType = gestureTypeSelect.value;
+                let newLabel;
+                let newGesture;
+
+                if (gestureType === 'default') {
+                    // 默认手势不允许新增，因为它们已经存在
+                    alert('无法修改默认手势');
+                    return;
+                } else if (gestureType === 'custom') {
+                    // 确保用户已选择使用者
+                    const username = usernameSelect.value;
+                    if (!username || username === 'add_new') {
+                        alert('请选择有效的使用者才能新增自定义手势');
+                        return;
+                    }
+
+                    // 发送请求到后端 /add_gesture
+                    fetch('/add_gesture', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            name: newGestureName,
+                            username: username,
+                        }),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.message) {
+                            // newLabel = data.label;
+                            newLabel = data.label; // 使用後端返回的 label
+                            newGesture = {
+                                id: `customGesture_${newLabel}`,
+                                label: newLabel,
+                                name: newGestureName
+                            };
+
+                            customGestures.push(newGesture);
+
+                            // Insert new gesture before 'Unknown'
+                            const unknownIndex = gestures.findIndex(g => g.label === 99);
+                            if (unknownIndex !== -1) {
+                                gestures.splice(unknownIndex, 0, newGesture);
+                            } else {
+                                gestures.push(newGesture); // Fallback
+                            }
+
+                            renderGestures();
+                            newGestureNameInput.value = '';
+                        } else if (data.error) {
+                            alert('Error: ' + data.error);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while adding the gesture.');
+                    });
+                }
+            });
+
+            // 保存到数据库
+            saveToDatabaseButton.addEventListener('click', function() {
+                const gestureType = gestureTypeSelect.value;
+                let username = 'default'; // 默認為 'default'
+                if (gestureType === 'custom') {
+                    username = usernameSelect.value;
+                    if (!username || username === 'add_new') {
+                        alert('请选择有效的使用者才能上传手势数据。');
+                        return;
+                    }
+                }
+
+                // 检查 CSV 是否需要添加用户名
+                let processUrl = '/process-csv';
+                processUrl += `?username=${encodeURIComponent(username)}`;
+
+                fetch(processUrl, { // 使用相对路径以避免跨域问题
+                    method: 'GET', // 根据后端实现，这里假设是 GET
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('File successfully processed and data saved into database');
+                    } else if (data.error) {
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while processing the file.');
+                });
+            });
+
+            // 自动新增自定义手势（当切换到 Custom 模式时）
+            function addCustomGesture() {
+                // 手动点击 "Add Gesture" 按钮以添加自定义手势
+            }
+        });
+    </script>
+</body>
+</html>

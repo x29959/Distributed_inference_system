@@ -47,7 +47,7 @@ MQTT_USERNAME = 'steve'
 MQTT_PASSWORD = '062028633'
 
 # 設定目標裝置的 IP 和 Port
-TARGET_DEVICE_IP = '100.90.232.15'  # 替換為目標裝置的 IP
+TARGET_DEVICE_IP = '100.72.105.61'  # 替換為目標裝置的 IP
 TARGET_DEVICE_PORT = '5000'         # 替換為目標裝置的 Port
 
 # TARGET_DEVICE_IP = '100.68.188.72'  # 替換為目標裝置的 IP
