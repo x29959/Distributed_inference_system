@@ -71,7 +71,7 @@ source /home/t1204/Desktop/new_combine_system_local/.venv/bin/activate
 
 **步驟：**
 - 執行 `cloud.py`
-https://github.com/x29959/Distributed_inference_system/blob/8462a334d94491534e32f50993873a02baffc740/cloud_retrain/cloud.py
+[Readme_file ](https://github.com/x29959/Distributed_inference_system/blob/6b0f317e25601cfd3314cf67b8fc025cb6186dcc/cloud_retrain/Readme.md)
 ## 系統整體啟動順序
 
 1. 開啟兩個串流伺服器
