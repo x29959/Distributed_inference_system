@@ -74,7 +74,7 @@ source /home/t1204/Desktop/new_combine_system_local/.venv/bin/activate
 [Readme_file ](https://github.com/x29959/Distributed_inference_system/blob/6b0f317e25601cfd3314cf67b8fc025cb6186dcc/cloud_retrain/Readme.md)
 ## 系統整體啟動順序
 
-1. 開啟兩個串流伺服器 [Readme_file] (https://github.com/x29959/Distributed_inference_system/blob/e650a0e11ccb1319da80b82ba257a130c679c96d/Rtmp_server/Readme.md)
+1. 開啟兩個串流伺服器 [Readme_file](https://github.com/x29959/Distributed_inference_system/blob/e650a0e11ccb1319da80b82ba257a130c679c96d/Rtmp_server/Readme.md)
    - 無人機
    - 樹莓派槍支機構
 2. 開啟 Temi 機器人上的 MQTT client app
