@@ -19,7 +19,7 @@ ifconfig
 ### 3. 啟動雲端伺服器
 ```bash
 # 在背景執行 cloud.py
-python3 cloud.py &
+python3 cloud.py
 ```
 
 ## 注意事項
