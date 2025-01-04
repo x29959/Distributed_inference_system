@@ -11,7 +11,7 @@ const config = {
     idle_timeout: 300
   },
   http: {
-    port: 8000,
+    port: 12000,
     mediaroot: './media',
     allow_origin: '*' // 確保允許跨域訪問
   },
