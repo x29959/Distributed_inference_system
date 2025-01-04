@@ -14,7 +14,7 @@
    - 下載並安裝 Tailscale
    - 登入並連接到您的 Tailscale 網路
 
-2.1 Termux 環境設定
+2.1.1 Termux 環境設定
    - 安裝 FFmpeg（選擇以下其中一種方法）：
      ```bash
      # 方法一：直接安裝（推薦）
@@ -35,9 +35,34 @@
      npm install express node-media-server
      npm init -y
      ```
-2.2 電腦架設環境
 
+   執行以下指令以啟動串流伺服器：
+   ```bash
+   node server.js
+   ```
+2.1.2 電腦架設環境
 
+- 安裝 npm 套件
+  ```bash
+  sudo apt update
+  sudo apt install npm
+  ```
+- 安裝 init
+  ```bash
+  npm init -y
+  ```
+- 安裝 node-media-server
+  ```bash
+   npm install node-media-server
+   ```
+- 執行串流伺服器
+  ```bash
+  node server.js
+  ```
+2.3 設定串流伺服器
+   - 輸入伺服器位址: ip:port
+   - 開啟串流伺服器
+   - 開啟串流應用程式VLC，輸入伺服器位址即可觀看串流
 
 3. 安裝 DJI fly app [Official android or ios Link](https://www.dji.com/tw/downloads/djiapp/dji-fly)
    - 開啟 DJI fly app
