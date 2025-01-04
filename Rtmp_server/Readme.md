@@ -3,7 +3,7 @@
 
 # On-device 裝置端
 
-### Part 1. Android 手機串流伺服器 / Android Phone Streaming Server
+### Part 1. Android 手機or電腦串流伺服器 / Android Phone Streaming Server
 
 #### 必備應用程式 / Required Applications
 - Termux ([Google Play Store Link](https://play.google.com/store/apps/details?id=com.termux))
@@ -14,7 +14,7 @@
    - 下載並安裝 Tailscale
    - 登入並連接到您的 Tailscale 網路
 
-2. Termux 環境設定
+2.1 Termux 環境設定
    - 安裝 FFmpeg（選擇以下其中一種方法）：
      ```bash
      # 方法一：直接安裝（推薦）
@@ -35,6 +35,10 @@
      npm install express node-media-server
      npm init -y
      ```
+2.2 電腦架設環境
+
+
+
 3. 安裝 DJI fly app [Official android or ios Link](https://www.dji.com/tw/downloads/djiapp/dji-fly)
    - 開啟 DJI fly app
 ![Screenshot_20241229_214306](https://github.com/user-attachments/assets/6f7ada30-bb24-469c-837a-cc276f4778a0)
