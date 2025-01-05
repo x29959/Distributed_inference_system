@@ -277,8 +277,8 @@ current_video_time_lock = threading.Lock()
 start_time = None
 YOLO_CAMERA_SOURCE = 'rtmp://100.70.26.103:1935/live/stream'
 # YOLO_CAMERA_SOURCE =0
-# GESTURE_CAMERA_SOURCE = 'rtmp://100.100.87.86:1935/live/stream'  # 可以是文件路徑或攝影機ID
-GESTURE_CAMERA_SOURCE = 0
+GESTURE_CAMERA_SOURCE = 'rtmp://100.100.87.86:1935/live/stream'  # 可以是文件路徑或攝影機ID
+# GESTURE_CAMERA_SOURCE = 0
 # GESTURE_CAMERA_SOURCE ='rtmp://100.70.26.103:1935/live/stream'
 # Define a helper function to emit messages in a non-blocking way
 
