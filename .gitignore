@@ -1,7 +1,95 @@
+# Video files and directories
 video/
 trest1/
-best_m.pt
 *.mp4
 *.webm
+*.avi
+
+# Model files
+best_m.pt
 osnet_x0_25_msmt17.pt
+*.pt
+*.pth
+*.onnx
+*.pb
+
+# Data files
 *.csv
+*.json
+!environment.yml
+!package.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Node modules
+node_modules/
+
+# Static files (except necessary ones)
+static/*.webm
+static/*.mp4
+static/*.avi
+static/*.csv
+
+# Configuration with sensitive data
+config.local.json
+.env
+.env.local
+
+# Backup files
+*.bak
+*.backup
+
+# OS
+Thumbs.db
+.DS_Store
