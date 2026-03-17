@@ -1,7 +1,12 @@
 # Core dependencies for Distributed Inference System
 
 # Deep Learning and Computer Vision
-torch==2.2.2
+# SECURITY WARNING: PyTorch 2.2.2 has known vulnerabilities
+# See SECURITY_ADVISORY.md for details and mitigation steps
+# Recommended: Upgrade to torch>=2.6.0 when compatible
+# Current: torch==2.2.2 (VULNERABLE - CVE pending)
+# Target: torch>=2.6.0 (requires compatibility testing)
+torch==2.2.2  # TODO: Upgrade to 2.6.0+ after compatibility testing
 torchvision==0.17.2
 ultralytics==8.2.36
 boxmot==10.0.73

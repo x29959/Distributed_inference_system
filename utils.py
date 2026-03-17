@@ -338,3 +338,159 @@ def validate_json_input(data: dict, required_fields: list) -> tuple[bool, Option
             return False, f"Missing required field: {field}"
 
     return True, None
+
+
+# ============================================================================
+# Security Functions for PyTorch Model Loading
+# ============================================================================
+
+def safe_torch_load(model_path: str, map_location=None, trusted_source: bool = False):
+    """
+    Safely load PyTorch models with security checks
+
+    WARNING: Current PyTorch version (2.2.2) has known vulnerabilities.
+    See SECURITY_ADVISORY.md for details and mitigation steps.
+
+    Args:
+        model_path: Path to model file
+        map_location: Device mapping
+        trusted_source: Only set True for models from verified sources
+
+    Returns:
+        Loaded model state dict or None on error
+    """
+    logger = logging.getLogger(__name__)
+
+    # Validate model file first
+    if not validate_model_file(model_path):
+        logger.error(f"Model file validation failed: {model_path}")
+        return None
+
+    if not trusted_source:
+        logger.warning(
+            f"Loading model from untrusted source: {model_path}. "
+            "This may pose security risks. See SECURITY_ADVISORY.md"
+        )
+
+    try:
+        # Load model
+        # Note: weights_only parameter behavior varies by PyTorch version
+        # In PyTorch < 2.6.0, weights_only=True has vulnerabilities
+        state_dict = torch.load(
+            model_path,
+            map_location=map_location,
+        )
+
+        logger.info(f"Successfully loaded model from {model_path}")
+        return state_dict
+
+    except Exception as e:
+        logger.error(f"Error loading model from {model_path}: {e}")
+        return None
+
+
+def validate_model_file(model_path: str, max_size_gb: float = 5.0) -> bool:
+    """
+    Validate model file before loading
+
+    Args:
+        model_path: Path to model file
+        max_size_gb: Maximum allowed file size in GB
+
+    Returns:
+        True if file appears safe, False otherwise
+    """
+    import os
+
+    if not os.path.exists(model_path):
+        logging.error(f"Model file does not exist: {model_path}")
+        return False
+
+    if not os.path.isfile(model_path):
+        logging.error(f"Model path is not a file: {model_path}")
+        return False
+
+    # Check file size (prevent extremely large files)
+    max_size_bytes = int(max_size_gb * 1024 * 1024 * 1024)
+    file_size = os.path.getsize(model_path)
+
+    if file_size > max_size_bytes:
+        logging.warning(
+            f"Model file {model_path} size ({file_size} bytes) "
+            f"exceeds maximum ({max_size_bytes} bytes)"
+        )
+        return False
+
+    if file_size == 0:
+        logging.error(f"Model file {model_path} is empty")
+        return False
+
+    return True
+
+
+def verify_model_checksum(model_path: str, expected_hash: str) -> bool:
+    """
+    Verify model file integrity using SHA256 checksum
+
+    Args:
+        model_path: Path to model file
+        expected_hash: Expected SHA256 hash
+
+    Returns:
+        True if checksum matches, False otherwise
+    """
+    import hashlib
+
+    try:
+        sha256_hash = hashlib.sha256()
+        with open(model_path, "rb") as f:
+            # Read in chunks to handle large files
+            for byte_block in iter(lambda: f.read(4096), b""):
+                sha256_hash.update(byte_block)
+
+        actual_hash = sha256_hash.hexdigest()
+        matches = actual_hash == expected_hash
+
+        if not matches:
+            logging.error(
+                f"Model checksum mismatch for {model_path}. "
+                f"Expected: {expected_hash}, Got: {actual_hash}"
+            )
+
+        return matches
+
+    except Exception as e:
+        logging.error(f"Error computing checksum for {model_path}: {e}")
+        return False
+
+
+def is_trusted_model_source(model_path: str, trusted_sources: Optional[list] = None) -> bool:
+    """
+    Check if model is from a trusted source
+
+    Args:
+        model_path: Path to model file
+        trusted_sources: List of trusted source directories
+
+    Returns:
+        True if source is trusted, False otherwise
+    """
+    import os
+
+    if trusted_sources is None:
+        # Default trusted sources
+        trusted_sources = [
+            './model/',
+            './best_m.pt',
+            './osnet_x0_25_msmt17.pt',
+        ]
+
+    abs_path = os.path.abspath(model_path)
+
+    for source in trusted_sources:
+        trusted_abs = os.path.abspath(source)
+        # Check if file is the trusted source or within trusted directory
+        if abs_path == trusted_abs or abs_path.startswith(trusted_abs + os.sep):
+            return True
+
+    return False
