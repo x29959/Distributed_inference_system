@@ -1,5 +1,16 @@
 # 分散式及自適應學習之架構說明
 
+> **🎉 System Improvements Available!**
+> This system has been significantly improved with better error handling, configuration management, health monitoring, and comprehensive documentation.
+> See [SUMMARY.md](SUMMARY.md) for a quick overview or [IMPROVEMENTS.md](IMPROVEMENTS.md) for detailed information.
+
+## 📚 Documentation
+- **[SUMMARY.md](SUMMARY.md)** - Quick overview of all improvements
+- **[IMPROVEMENTS.md](IMPROVEMENTS.md)** - Detailed improvement guide with examples
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Complete deployment and operations guide
+- **[requirements.txt](requirements.txt)** - Python package dependencies
+- **[config.example.json](config.example.json)** - Configuration template
+
 ## 目錄
 - [系統架構參考](#系統架構參考)
 - [環境需求](#環境需求)
