@@ -1,5 +1,22 @@
 # 分散式及自適應學習之架構說明
 
+> **🎉 System Improvements Available!**
+> This system has been significantly improved with better error handling, configuration management, health monitoring, and comprehensive documentation.
+> See [SUMMARY.md](SUMMARY.md) for a quick overview or [IMPROVEMENTS.md](IMPROVEMENTS.md) for detailed information.
+
+> **⚠️ SECURITY ADVISORY**
+> PyTorch 2.2.2 has known vulnerabilities. Security mitigations have been implemented.
+> **See [SECURITY_ADVISORY.md](SECURITY_ADVISORY.md) for details and recommended actions.**
+
+## 📚 Documentation
+- **[SECURITY_ADVISORY.md](SECURITY_ADVISORY.md)** - ⚠️ **Important security information**
+- **[SUMMARY.md](SUMMARY.md)** - Quick overview of all improvements
+- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Common usage patterns
+- **[IMPROVEMENTS.md](IMPROVEMENTS.md)** - Detailed improvement guide with examples
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Complete deployment and operations guide
+- **[requirements.txt](requirements.txt)** - Python package dependencies
+- **[config.example.json](config.example.json)** - Configuration template
+
 ## 目錄
 - [系統架構參考](#系統架構參考)
 - [環境需求](#環境需求)

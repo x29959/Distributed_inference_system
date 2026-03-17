@@ -1,0 +1,52 @@
+# Core dependencies for Distributed Inference System
+
+# Deep Learning and Computer Vision
+# SECURITY WARNING: PyTorch 2.2.2 has known vulnerabilities
+# See SECURITY_ADVISORY.md for details and mitigation steps
+# Recommended: Upgrade to torch>=2.6.0 when compatible
+# Current: torch==2.2.2 (VULNERABLE - CVE pending)
+# Target: torch>=2.6.0 (requires compatibility testing)
+torch==2.2.2  # TODO: Upgrade to 2.6.0+ after compatibility testing
+torchvision==0.17.2
+ultralytics==8.2.36
+boxmot==10.0.73
+opencv-python==4.10.0.84
+opencv-contrib-python==4.10.0.84
+mediapipe==0.20.0
+
+# Web Framework
+Flask==2.3.3
+flask-socketio==5.4.1
+flask-cors
+
+# Database
+psycopg2==2.9.9
+
+# MQTT for Robot Communication
+paho-mqtt==2.1.0
+
+# Data Processing
+numpy==1.24.4
+pandas==2.2.3
+scikit-learn==1.5.2
+
+# Video Processing
+moviepy==1.0.3
+imageio==2.33.1
+imageio-ffmpeg==0.5.1
+
+# System Monitoring
+psutil==6.0.0
+
+# Utilities
+python-dotenv
+tqdm==4.66.5
+pyyaml==6.0.2
+requests==2.32.3
+
+# Development and Testing
+pytest
+pytest-cov
+black
+flake8
+mypy
